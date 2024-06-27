@@ -19,7 +19,6 @@
 #define __OLED_H
 
 #include "stdlib.h"
-#include "oledfont.h"
 #include "delay.h"
 #include "sys.h"
 #include "stdlib.h"
@@ -46,6 +45,10 @@
 #define OLED_CMD  0	//写命令
 #define OLED_DATA 1	//写数据
 
+extern const unsigned char F6x8[][6];
+extern const unsigned char F8X16[];
+extern const char Hzk[][32];
+extern const unsigned char BMP1[];
 
 //OLED控制用函数
 void OLED_WR_Byte(unsigned dat,unsigned cmd);
@@ -71,8 +74,5 @@ void Picture();
 void Write_IIC_Command(unsigned char IIC_Command);
 void Write_IIC_Data(unsigned char IIC_Data);
 void Write_IIC_Byte(unsigned char IIC_Byte);
+
 #endif
-
-
-
-

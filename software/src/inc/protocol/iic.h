@@ -17,9 +17,9 @@
 #include "delay.h"
 
 //IO操作函数
-#define IIC_SCL PBout(6) //SCL
-#define IIC_SDA PBout(7) //SDA
-#define READ_SDA PBin(7) //输入SDA
+#define IIC_SCL PBout(10) //SCL
+#define IIC_SDA PBout(11) //SDA
+#define READ_SDA PBin(11) //输入SDA
 
 //IO方向设置
 #define SDA_IN()                    \
