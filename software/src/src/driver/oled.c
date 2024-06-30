@@ -29,36 +29,7 @@
 //[5]0 1 2 3 ... 127
 //[6]0 1 2 3 ... 127
 //[7]0 1 2 3 ... 127
-/**********************************************
-//IIC Start
-**********************************************/
-/**********************************************
-//IIC Start
-**********************************************/
-// void IIC_Start()
-// {
 
-//     OLED_SCLK_Set();
-//     OLED_SDIN_Set();
-//     OLED_SDIN_Clr();
-//     OLED_SCLK_Clr();
-// }
-
-/**********************************************
-//IIC Stop
-**********************************************/
-// void IIC_Stop()
-// {
-//     OLED_SCLK_Set();
-//     OLED_SDIN_Clr();
-//     OLED_SDIN_Set();
-// }
-
-// void IIC_Wait_Ack()
-// {
-//     OLED_SCLK_Set();
-//     OLED_SCLK_Clr();
-// }
 /**********************************************
 // IIC Write byte
 **********************************************/
@@ -330,16 +301,6 @@ void OLED_DrawBMP(unsigned char x0, unsigned char y0, unsigned char x1, unsigned
 //初始化SSD1306
 void OLED_Init(void)
 {
-
-    // GPIO_InitTypeDef GPIO_InitStructure;
-
-    // RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE); //使能A端口时钟
-    // GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;
-    // GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;  //推挽输出
-    // GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz; //速度50MHz
-    // GPIO_Init(GPIOB, &GPIO_InitStructure);            //初始化GPIOD3,6
-    // GPIO_SetBits(GPIOB, GPIO_Pin_10 | GPIO_Pin_11);
-
     delay_ms(800);
     OLED_WR_Byte(0xAE, OLED_CMD); //--display off
     OLED_WR_Byte(0x00, OLED_CMD); //---set low column address

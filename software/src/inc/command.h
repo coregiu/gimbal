@@ -54,6 +54,16 @@ struct command_context
     char command;
 };
 
+// 陀螺仪信息
+struct gimbal_info
+{
+    float x;
+    float y;
+    float z;
+};
+
+extern struct gimbal_info gimbal_info;
+
 // define commands id
 enum commands_def
 {
