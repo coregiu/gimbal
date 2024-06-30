@@ -105,7 +105,7 @@ struct module_command_executor
 };
 
 // init command
-void init_command_module();
+void init_command_led_module();
 
 // convert command to the array sequence of command_module_map.
 uint convert_command_seq(char command);

@@ -18,11 +18,18 @@
 #include "audio_receiver.h"
 #include "video_receiver.h"
 #include "arm_roboot_executor.h"
+#include "led_display.h"
+#include "iic.h"
 
 extern const char command_module_map[COMMANDS_LENGTH][2];
 
 /**
- * init uart and all receive and executor modules
+ * init protocols such as iic, uart.
+ */
+void init_protocols();
+
+/**
+ * init all receive and executor modules
  *
  */
 void init_modules();

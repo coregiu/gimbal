@@ -113,11 +113,11 @@ $ ll src
 total 1.0M
 drwxrwxr-x  3 eagle 4.0K 6月  11 23:15 .
 drwxrwxr-x  6 eagle 4.0K 6月  11 23:15 ..
--rwxrwxr-x  1 eagle  18K 6月  11 23:15 ago_maincontrol.bin
--rwxrwxr-x  1 eagle 360K 6月  11 23:15 ago_maincontrol.elf
--rw-rw-r--  1 eagle  51K 6月  11 23:15 ago_maincontrol.hex
--rw-rw-r--  1 eagle 433K 6月  11 23:15 ago_maincontrol.lss
--rw-rw-r--  1 eagle 213K 6月  11 23:15 ago_maincontrol.map
+-rwxrwxr-x  1 eagle  18K 6月  11 23:15 gimbal.bin
+-rwxrwxr-x  1 eagle 360K 6月  11 23:15 gimbal.elf
+-rw-rw-r--  1 eagle  51K 6月  11 23:15 gimbal.hex
+-rw-rw-r--  1 eagle 433K 6月  11 23:15 gimbal.lss
+-rw-rw-r--  1 eagle 213K 6月  11 23:15 gimbal.map
 drwxrwxr-x 11 eagle 4.0K 6月  11 23:15 CMakeFiles
 -rw-rw-r--  1 eagle 1017 1月  14 08:26 cmake_install.cmake
 -rw-rw-r--  1 eagle  27K 1月  14 08:26 Makefile
@@ -128,4 +128,4 @@ drwxrwxr-x 11 eagle 4.0K 6月  11 23:15 CMakeFiles
 
 ![st-link](st-link.png)
 
-点击连接，选择ago_maincontrol.bin文件，点击烧录按钮。
+点击连接，选择gimbal.bin文件，点击烧录按钮。

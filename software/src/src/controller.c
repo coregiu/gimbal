@@ -33,14 +33,18 @@ const char command_module_map[COMMANDS_LENGTH][2] = {{COMMAND_STOP, MODULE_VEHIC
                                                       {COMMAND_PLAYING, MODULE_INTELI},
                                                       {COMMAND_UNKNOWN, MODULE_UNKNOWN}};
 
+void init_protocols()
+{
+    init_command_led_module();
+    IIC_Init();
+}
+
 /**
  * init uart and all receive and executor modules
  *
  */
 void init_modules()
 {
-    init_command_module();
-
     audio_receiver.init();
     vehicle_executor.init();
     // timer_executor.init();
@@ -48,6 +52,7 @@ void init_modules()
     init_freertos();
 
     arm_roboot_executor.init();
+    led_display_executor.init();
 }
 
 /**
