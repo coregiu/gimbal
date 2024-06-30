@@ -57,9 +57,9 @@ struct command_context
 // 陀螺仪信息
 struct gimbal_info
 {
-    float x;
-    float y;
-    float z;
+    short gyro_x;
+    short gyro_y;
+    short gyro_z;
 };
 
 extern struct gimbal_info gimbal_info;
