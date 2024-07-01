@@ -10,14 +10,14 @@
 
 #include <led_display.h>
 
-struct gimbal_info gimbal_info = {0, 0, -12300};
+struct gimbal_info gimbal_info = {0, 0, 0};
 
 const uchar PIXEL_DISTANCE_INTERVAL = 6;
 
 void init_led_display()
 {
     OLED_Init();            //初始化OLED
-    show_gimbal_info(&gimbal_info);
+    // show_gimbal_info(&gimbal_info);
 }
 
 void display_info(struct command_context *command_context)

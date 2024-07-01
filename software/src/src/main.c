@@ -9,6 +9,7 @@
 **/
 
 #include <controller.h>
+#include "mpu6050.h"
 static void clock_init(void)
 {
     /* Reset the RCC clock configuration to the default reset state. */
@@ -36,13 +37,20 @@ int main(void)
     uart_log_start_info();
 
     LED = 0;
-	delay_ms(500);
+    delay_ms(500);
 
     LED = 1;
-	delay_ms(500);
+    delay_ms(500);
 
-    vTaskStartScheduler();
+    // vTaskStartScheduler();
     while (1)
     {
+        delay_ms(1000);
+        uint8_t result = MPU_Get_Gyroscope(&(gimbal_info.gyro_x), &(gimbal_info.gyro_x),&(gimbal_info.gyro_x));
+        if (result == 0)
+        {
+            LED = !LED;
+        }
+        show_gimbal_info(&gimbal_info);
     }
 }
