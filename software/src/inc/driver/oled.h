@@ -46,6 +46,7 @@ extern const unsigned char F6x8[][6];
 extern const unsigned char F8X16[];
 extern const char Hzk[][32];
 extern const unsigned char BMP1[];
+extern const unsigned char hzk12us_font_data[][12];
 
 
 //OLED¿ØÖÆÓÃº¯Êý
@@ -58,9 +59,12 @@ void OLED_DrawPoint(u8 x,u8 y,u8 t);
 void OLED_Fill(u8 x1,u8 y1,u8 x2,u8 y2,u8 dot);
 void OLED_ShowChar(u8 x,u8 y,u8 chr,u8 Char_Size);
 void OLED_ShowNum(u8 x,u8 y,u32 num,u8 len,u8 size);
+void OLED_ShowShort(u8 *x,u8 *y,short num);
 void OLED_ShowString(u8 x,u8 y, char *p,u8 Char_Size);
 void OLED_Set_Pos(unsigned char x, unsigned char y);
 void OLED_ShowCHinese(u8 x,u8 y,u8 no);
+void OLED_ShowCHinese_12(u8 x,u8 y,u8 no);
+
 void OLED_DrawBMP(unsigned char x0, unsigned char y0,unsigned char x1, unsigned char y1, const unsigned char BMP[]);
 void Delay_50ms(unsigned int Del_50ms);
 void Delay_1ms(unsigned int Del_1ms);
