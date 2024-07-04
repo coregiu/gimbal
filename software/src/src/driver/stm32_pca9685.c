@@ -89,7 +89,6 @@ void pca_setpwm(u8 num, u32 on, u32 off)
 */
 void pca_init(float hz)
 {
-    IIC_Init();
     pca_write(pca_mode1, 0x0);
     pca_setfreq(hz); //设置PWM频率
 }
