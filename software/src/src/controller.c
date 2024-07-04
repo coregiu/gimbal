@@ -47,12 +47,12 @@ void init_modules()
 {
     audio_receiver.init();
     vehicle_executor.init();
-    // timer_executor.init();
 
     init_freertos();
 
     arm_roboot_executor.init();
     led_display_executor.init();
+    arm_roboot_executor.init();
 }
 
 /**
