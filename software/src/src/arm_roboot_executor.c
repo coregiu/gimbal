@@ -19,6 +19,8 @@ void init_roboot_state()
     TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
     TIM_OCInitTypeDef TIM_OCInitStructure;
 
+    TIM_OCStructInit(&TIM_OCInitStructure); //配置默认项
+
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);                        //使能定时器3时钟
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO, ENABLE); //使能GPIO外设和AFIO复用功能模块时钟
 
@@ -33,6 +35,7 @@ void init_roboot_state()
     // 初始化TIM3
     // 定时器中断时间（ｍｓ）＝（TIM_Prescaler + 1）* (TIM_Period +1) * 1000 ／ 时钟频率
     // (7200*200)/72000000=0.02=20ms
+    TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1 ;
     TIM_TimeBaseStructure.TIM_Period = ARR;                     //设置在下一个更新事件装入活动的自动重装载寄存器周期的值
     TIM_TimeBaseStructure.TIM_Prescaler = PSC;                  //设置用来作为TIMx时钟频率除数的预分频值
     TIM_TimeBaseStructure.TIM_ClockDivision = 0;                //设置时钟分割:TDTS = Tck_tim
@@ -40,6 +43,7 @@ void init_roboot_state()
     TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);             //根据TIM_TimeBaseInitStruct中指定的参数初始化TIMx的时间基数单位
 
     //初始化TIM3 Channel2 PWM模式
+
     TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;             //选择定时器模式:TIM脉冲宽度调制模式1
     TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable; //比较输出使能
     TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;     //输出极性:TIM输出比较极性高
@@ -56,6 +60,11 @@ void init_roboot_state()
 
 void update_roboot_state(struct command_context *command_context)
 {
+}
+
+void change_angle(uchar angle)
+{
+    TIM_SetCompare1(TIM3, (angle / 9) + 5);
 }
 
 const struct module_command_executor arm_roboot_executor = {init_roboot_state, update_roboot_state};

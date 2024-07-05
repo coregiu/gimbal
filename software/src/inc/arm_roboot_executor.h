@@ -31,6 +31,9 @@
 #define SERVO_RANGE_2_FRONT   160
 #define SERVO_RANGE_2_INIT    30
 
+// angle: 0-180
+void change_angle(uchar angle);
+
 extern const struct module_command_executor arm_roboot_executor;
 
 #endif
