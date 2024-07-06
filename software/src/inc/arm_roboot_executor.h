@@ -34,7 +34,7 @@
 enum pwm_channel
 {
     CHANNEL_BOTTOM = '1',
-    CHANNEL_UP      = '2'
+    CHANNEL_UP     = '2'
 };
 
 // angle: 0-180

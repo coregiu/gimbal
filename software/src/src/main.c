@@ -9,7 +9,6 @@
 **/
 
 #include <controller.h>
-#include "mpu6050.h"
 static void clock_init(void)
 {
     /* Reset the RCC clock configuration to the default reset state. */
@@ -35,16 +34,9 @@ int main(void)
     LED = 0;
 
     init_modules();
-
     uart_log_start_info();
     delay_ms(500);
 
     LED = ~LED;
-    delay_ms(500);
-
     vTaskStartScheduler();
-    while (1)
-    {
-
-    }
 }

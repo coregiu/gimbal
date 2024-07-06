@@ -1,31 +1,25 @@
 #include <timer_executor.h>
-#include <mpu6050.h>
-#include <led_display.h>
+#include "mpu6050.h"
+#include "led_display.h"
 
 struct gimbal_info pre_gimbal_info = {0, 0, 0};
 
-void tim1_configuration()
+void create_timer_executor()
 {
-    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+    TimerHandle_t xTimer;
+    const TickType_t xFrequency = pdMS_TO_TICKS(100); // å®šæ—¶å™¨é¢‘ç‡100MS
+    const BaseType_t xAutoReload = pdTRUE; // è®¾ç½®ä¸ºè‡ªåŠ¨è£…è½½
 
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE); //Ê¹ÄÜTIM1Ê±ÖÓ
-
-    TIM_TimeBaseStructure.TIM_Period = 1000 - 1; // ×Ô¶¯ÖØ×°ÔØÖµ, 100ms
-    TIM_TimeBaseStructure.TIM_Prescaler = 7200 -1; // Ê±ÖÓÔ¤·ÖÆµÖµ
-    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up; // ÏòÉÏ¼ÆÊıÄ£Ê½
-    TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1; // Ê±ÖÓ·ÖÆµÒò×Ó
-    TIM_TimeBaseStructure.TIM_RepetitionCounter = 0; // ÖØ¸´¼ÆÊıÆ÷
-
-    TIM_TimeBaseInit(TIM1, &TIM_TimeBaseStructure);
-
-    TIM_ITConfig(TIM1, TIM_IT_Update, ENABLE); // TIM1Òç³öÖĞ¶ÏÔÊĞí
-
-    TIM_Cmd(TIM1, ENABLE); // TIM1Ê¹ÄÜ
+    xTimer = xTimerCreate("GimbalTask", xFrequency, xAutoReload, NULL, gimbal_task_callback);
+    if (xTimer != NULL)
+    {
+        xTimerStart(xTimer, 0); // å¯åŠ¨å®šæ—¶å™¨
+    }
 }
 
 void init_timer_module()
 {
-    tim1_configuration();
+    create_timer_executor();
     uint8_t result = MPU_Init();
     if (result != 0)
     {
@@ -76,28 +70,23 @@ void update_timer_state(struct command_context *command_context)
 
 }
 
-void TIM1_UP_IRQHandler(void)
+void gimbal_task_callback(TimerHandle_t xTimer)
 {
-    if (TIM_GetITStatus(TIM1, TIM_IT_Update) != RESET) // TIM1Òç³öÖĞ¶Ï
-    {
-        TIM_ClearITPendingBit(TIM1, TIM_IT_Update); // Çå³ıTIM1Òç³öÖĞ¶Ï±êÖ¾Î»
-        // ¿ªÊ¼¼àÌımpu6050Êı¾İ£¬¼ÆËãÆ«×ªºó·´À¡¶æ»ú·´À¡ĞŞÕı
-        // uart_log_data('T');
-        uint8_t result = MPU_Get_Gyroscope(&(gimbal_info.gyro_x), &(gimbal_info.gyro_x),&(gimbal_info.gyro_x));
-        if (result != 0)
-        {
-            uart_log_string_data("mpu read error");
-            return;
-        }
-        if (compare_gimbal_info(&pre_gimbal_info, &gimbal_info) == 0)
-        {
-            // Î»ÖÃÃ»ÓĞ±ä»¯
-            return;
-        }
-        set_gimbal_info(&pre_gimbal_info, &gimbal_info);
-        log_gyro_info(&gimbal_info);
-        show_gimbal_info(&gimbal_info);
-    }
+    // LED = ~LED;
+    // uint8_t result = MPU_Get_Gyroscope(&(gimbal_info.gyro_x), &(gimbal_info.gyro_x),&(gimbal_info.gyro_x));
+    // if (result != 0)
+    // {
+    //     uart_log_string_data("mpu read error");
+    //     return;
+    // }
+    // if (compare_gimbal_info(&pre_gimbal_info, &gimbal_info) == 0)
+    // {
+    //     // ä½ç½®æ²¡æœ‰å˜åŒ–
+    //     return;
+    // }
+    // set_gimbal_info(&pre_gimbal_info, &gimbal_info);
+    // log_gyro_info(&gimbal_info);
+    // show_gimbal_info(&gimbal_info);
 }
 
 const struct module_command_executor timer_executor = {init_timer_module, update_timer_state};

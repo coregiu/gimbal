@@ -612,7 +612,7 @@ void READ_MPU6050(void)
 ** 返    回	： 无
 ********************************************************************************
 */
-int main(void)
+int main_bak(void)
 {
   RCC_Configuration();		 //配置RCC
   GPIO_Configuration();		 //配置GPIO
