@@ -56,15 +56,37 @@ void init_roboot_state()
     TIM_ARRPreloadConfig(TIM3, ENABLE); //使能TIMx在ARR上的预装载寄存器
 
     TIM_Cmd(TIM3, ENABLE); //使能TIM3
+
+    // 设置舵机初始状态在90度
+    change_angle(CHANNEL_BOTTOM, SERVO_RANGE_1_INIT);
+    change_angle(CHANNEL_UP, SERVO_RANGE_2_INIT);
 }
 
 void update_roboot_state(struct command_context *command_context)
 {
 }
 
-void change_angle(uchar angle)
+/**
+ * 0度， 0.5ms， 在占空比20ms下，相当对于200次就是5次。
+ * 45度， 10
+ * 90度， 15
+ * 135度， 20
+ * 180度， 25
+ */
+void change_angle(enum pwm_channel channel, uchar angle)
 {
-    TIM_SetCompare1(TIM3, (angle / 9) + 5);
+    switch (channel)
+    {
+    case CHANNEL_BOTTOM:
+        TIM_SetCompare1(TIM3, (angle / 9) + 5);
+        break;
+    case CHANNEL_UP:
+        TIM_SetCompare2(TIM3, (angle / 9) + 5);
+        break;
+    default:
+        break;
+    }
+
 }
 
 const struct module_command_executor arm_roboot_executor = {init_roboot_state, update_roboot_state};

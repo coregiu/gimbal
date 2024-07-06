@@ -32,6 +32,23 @@ void uart_log_string_data(char *log_data)
     uart_log_enter_char();
 }
 
+void uart_log_number(int log_number)
+{
+    if (log_number < 0)
+    {
+        uart_log_data('-');
+        log_number = ~(log_number - 1);
+    }
+    short tmpNum = log_number / 10;
+    if (tmpNum == 0)
+    {
+        uart_log_data(log_number + 0x30);
+        return;
+    }
+    uart_log_number(tmpNum);
+    uart_log_data((log_number % 10) + 0x30);
+}
+
 /**
  * log enter key
  */

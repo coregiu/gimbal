@@ -43,4 +43,6 @@ void uart_log_start_info();
  */
 uint16_t count_str(char *str);
 
+void uart_log_number(int log_number);
+
 #endif
