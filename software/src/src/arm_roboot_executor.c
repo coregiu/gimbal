@@ -13,53 +13,68 @@
 const short ARR = 199;
 const short PSC = 7199;
 
-void init_roboot_state()
+static void tim3_gpio_config(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
-    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
-    TIM_OCInitTypeDef TIM_OCInitStructure;
 
-    TIM_OCStructInit(&TIM_OCInitStructure); //配置默认项
-
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);                        //使能定时器3时钟
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO, ENABLE); //使能GPIO外设和AFIO复用功能模块时钟
-
-    GPIO_PinRemapConfig(GPIO_PartialRemap_TIM3, ENABLE); //Timer3部分重映射  TIM3_CH1->PB4,TIM3_CH2->PB5
-
-    //设置该引脚为复用输出功能,输出TIM3 CH1|CH2的PWM脉冲波形
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_5; //TIM_CH1|TIM_CH2
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;        //复用推挽输出
+    // 输出比较通道1 GPIO 初始化
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(GPIOB, &GPIO_InitStructure); //初始化GPIO
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+}
 
-    // 初始化TIM3
-    // 定时器中断时间（ｍｓ）＝（TIM_Prescaler + 1）* (TIM_Period +1) * 1000 ／ 时钟频率
-    // (7200*200)/72000000=0.02=20ms
-    TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1 ;
-    TIM_TimeBaseStructure.TIM_Period = ARR;                     //设置在下一个更新事件装入活动的自动重装载寄存器周期的值
-    TIM_TimeBaseStructure.TIM_Prescaler = PSC;                  //设置用来作为TIMx时钟频率除数的预分频值
-    TIM_TimeBaseStructure.TIM_ClockDivision = 0;                //设置时钟分割:TDTS = Tck_tim
-    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up; //TIM向上计数模式
-    TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);             //根据TIM_TimeBaseInitStruct中指定的参数初始化TIMx的时间基数单位
+// 使用TIM功能的PWM模式
+static void tim3_mode_config(void)
+{
+    // 开启定时器时钟,即内部时钟CK_INT=72M
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
 
-    //初始化TIM3 Channel2 PWM模式
+    /*--------------------时基结构体初始化-------------------------*/
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+    // 自动重装载寄存器的值，累计TIM_Period+1个频率后产生一个更新或者中断
+    TIM_TimeBaseStructure.TIM_Period = ARR;
+    // 驱动CNT计数器的时钟 = Fck_int/(psc+1)
+    TIM_TimeBaseStructure.TIM_Prescaler = PSC;
+    // 时钟分频因子 ，配置死区时间时需要用到
+    TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+    // 计数器计数模式，设置为向上计数
+    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    // 重复计数器的值，没用到不用管
+    TIM_TimeBaseStructure.TIM_RepetitionCounter = 0;
+    // 初始化定时器
+    TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
 
-    TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;             //选择定时器模式:TIM脉冲宽度调制模式1
-    TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable; //比较输出使能
-    TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;     //输出极性:TIM输出比较极性高
-    TIM_OC2Init(TIM3, &TIM_OCInitStructure);                      //根据T指定的参数初始化外设TIM3 OC2
+    /*--------------------输出比较结构体初始化-------------------*/
+
+    TIM_OCInitTypeDef TIM_OCInitStructure;
+    // 配置为PWM模式1
+    TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+    // 输出使能
+    TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+    // 输出通道电平极性配置
+    TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
+
+    // 输出比较通道 1
+    TIM_OCInitStructure.TIM_Pulse = 0;
     TIM_OC1Init(TIM3, &TIM_OCInitStructure);
-
+    TIM_OC2Init(TIM3, &TIM_OCInitStructure);
     TIM_OC1PreloadConfig(TIM3, TIM_OCPreload_Enable);
     TIM_OC2PreloadConfig(TIM3, TIM_OCPreload_Enable); //使能TIM3在CCR2上的预装载寄存器
 
-    TIM_ARRPreloadConfig(TIM3, ENABLE); //使能TIMx在ARR上的预装载寄存器
+    // 使能计数器
+    TIM_Cmd(TIM3, ENABLE);
+}
 
-    TIM_Cmd(TIM3, ENABLE); //使能TIM3
-
+// 定义一个初始化函数，同时初始化时基与输出比较
+void init_roboot_state(void)
+{
+    tim3_gpio_config();
+    tim3_mode_config();
     // 设置舵机初始状态在90度
-    change_angle(CHANNEL_BOTTOM, SERVO_RANGE_1_INIT);
-    change_angle(CHANNEL_UP, SERVO_RANGE_2_INIT);
+    TIM_SetCompare1(TIM3, 15);
+    TIM_SetCompare2(TIM3, 15);
 }
 
 void update_roboot_state(struct command_context *command_context)
