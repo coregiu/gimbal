@@ -13,7 +13,7 @@
 const short ARR = 199;
 const short PSC = 7199;
 
-static void tim3_gpio_config(void)
+void tim3_gpio_config(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
 
@@ -26,7 +26,7 @@ static void tim3_gpio_config(void)
 }
 
 // 使用TIM功能的PWM模式
-static void tim3_mode_config(void)
+void tim3_mode_config(void)
 {
     // 开启定时器时钟,即内部时钟CK_INT=72M
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);

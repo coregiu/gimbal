@@ -72,21 +72,21 @@ void update_timer_state(struct command_context *command_context)
 
 void gimbal_task_callback(TimerHandle_t xTimer)
 {
-    // LED = ~LED;
-    // uint8_t result = MPU_Get_Gyroscope(&(gimbal_info.gyro_x), &(gimbal_info.gyro_x),&(gimbal_info.gyro_x));
-    // if (result != 0)
-    // {
-    //     uart_log_string_data("mpu read error");
-    //     return;
-    // }
-    // if (compare_gimbal_info(&pre_gimbal_info, &gimbal_info) == 0)
-    // {
-    //     // 位置没有变化
-    //     return;
-    // }
-    // set_gimbal_info(&pre_gimbal_info, &gimbal_info);
-    // log_gyro_info(&gimbal_info);
-    // show_gimbal_info(&gimbal_info);
+    LED = ~LED;
+    uint8_t result = MPU_Get_Gyroscope(&(gimbal_info.gyro_x), &(gimbal_info.gyro_x),&(gimbal_info.gyro_x));
+    if (result != 0)
+    {
+        uart_log_string_data("mpu read error");
+        return;
+    }
+    if (compare_gimbal_info(&pre_gimbal_info, &gimbal_info) == 0)
+    {
+        // 位置没有变化
+        return;
+    }
+    set_gimbal_info(&pre_gimbal_info, &gimbal_info);
+    log_gyro_info(&gimbal_info);
+    show_gimbal_info(&gimbal_info);
 }
 
 const struct module_command_executor timer_executor = {init_timer_module, update_timer_state};

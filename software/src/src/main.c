@@ -5,29 +5,29 @@
   * author: coregiu
   *
   *
-  ******************************************************************************
-**/
+  * *****************************************************************************
+  * 开启timer3定时器后不再需要clock_init了。
+  * void clock_init(void)
+  * {
+  *     // Reset the RCC clock configuration to the default reset state.
+  *     // HSI ON, PLL OFF, HSE OFF, system clock = 72 MHz, cpu_clock = 72 MHz
+  *     RCC_DeInit();
+  *     // BluePill board runs at 72 MHz
+  *     SystemCoreClockUpdate();
+  *
+  *     if (SysTick_Config(SystemCoreClock / 1000))
+  *     {
+  *         // Capture error
+  *         while (1)
+  *             ;
+  *     }
+  * }
+  */
 
 #include <controller.h>
-static void clock_init(void)
-{
-    /* Reset the RCC clock configuration to the default reset state. */
-    /* HSI ON, PLL OFF, HSE OFF, system clock = 72 MHz, cpu_clock = 72 MHz */
-    RCC_DeInit();
-    /* BluePill board runs at 72 MHz */
-    SystemCoreClockUpdate();
-
-    if (SysTick_Config(SystemCoreClock / 1000))
-    {
-        /* Capture error */
-        while (1)
-            ;
-    }
-}
 
 int main(void)
 {
-    clock_init();
     delay_init();
 
     init_protocols();
@@ -39,4 +39,7 @@ int main(void)
 
     LED = ~LED;
     vTaskStartScheduler();
+    while (1)
+    {
+    }
 }
