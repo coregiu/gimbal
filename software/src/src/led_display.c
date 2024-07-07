@@ -10,8 +10,6 @@
 
 #include <led_display.h>
 
-struct gimbal_info gimbal_info = {0, 0, 0};
-
 const uchar PIXEL_DISTANCE_INTERVAL = 6;
 
 void init_led_display()

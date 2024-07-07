@@ -2,6 +2,7 @@
 #include "mpu6050.h"
 #include "led_display.h"
 
+struct gimbal_info gimbal_info = {0, 0, 0};
 struct gimbal_info pre_gimbal_info = {0, 0, 0};
 
 void create_timer_executor()
@@ -43,6 +44,10 @@ void init_timer_module()
     if (result != 0)
     {
         uart_log_string_data("mpu init error");
+    }
+    else
+    {
+        uart_log_string_data("mpu init success");
     }
 }
 
@@ -95,19 +100,21 @@ void TIM2_IRQHandler(void)
         // 清除更新中断标志位
         TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
         LED = ~LED;
-        uint8_t result = MPU_Get_Gyroscope(&(gimbal_info.gyro_x), &(gimbal_info.gyro_x),&(gimbal_info.gyro_x));
+        uint8_t result = MPU_Get_Gyroscope(&gimbal_info.gyro_x, &gimbal_info.gyro_y, &gimbal_info.gyro_z);
         if (result != 0)
         {
             uart_log_string_data("mpu read error");
             return;
         }
+
+        log_gyro_info(&gimbal_info);
         if (compare_gimbal_info(&pre_gimbal_info, &gimbal_info) == 0)
         {
             // 位置没有变化
             return;
         }
         set_gimbal_info(&pre_gimbal_info, &gimbal_info);
-        log_gyro_info(&gimbal_info);
+
         show_gimbal_info(&gimbal_info);
     }
 }

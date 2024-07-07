@@ -1,6 +1,6 @@
 
 #include <mpu6050.h>
-
+#include "uart_log.h"
 
 //初始化MPU6050
 //返回值:0,成功
@@ -21,7 +21,7 @@ uint8_t MPU_Init(void)
     MPU_Write_Byte(MPU_FIFO_EN_REG,0X00);	//关闭FIFO
     MPU_Write_Byte(MPU_INTBP_CFG_REG,0X80);	//INT引脚低电平有效
     res=MPU_Read_Byte(MPU_DEVICE_ID_REG);
-    if(res==MPU_ADDR)//器件ID正确
+    if(res == MPU_ADDR || res == MPU_6500_WHO_AMI_I) //器件ID正确
     {
         MPU_Write_Byte(MPU_PWR_MGMT1_REG,0X01);	//设置CLKSEL,PLL X轴为参考
         MPU_Write_Byte(MPU_PWR_MGMT2_REG,0X00);	//加速度与陀螺仪都工作
@@ -92,16 +92,39 @@ float MPU_Get_Temperature(void)
 //    其他,错误代码
 uint8_t MPU_Get_Gyroscope(short *gx,short *gy,short *gz)
 {
-    uint8_t buf[6],res;
-    res=MPU_Read_Len(MPU_ADDR,MPU_GYRO_XOUTH_REG,6,buf);
+    uint8_t x_h = 0, x_l = 0, y_h = 0, y_l = 0, z_h = 0, z_l = 0, res = 0;
+    res |= MPU_Read_Len(MPU_ADDR, MPU_GYRO_XOUTH_REG, 1, &x_h);
+    res |= MPU_Read_Len(MPU_ADDR, MPU_GYRO_XOUTL_REG, 1, &x_l);
+    res |= MPU_Read_Len(MPU_ADDR, MPU_GYRO_YOUTH_REG, 1, &y_h);
+    res |= MPU_Read_Len(MPU_ADDR, MPU_GYRO_YOUTL_REG, 1, &y_l);
+    res |= MPU_Read_Len(MPU_ADDR, MPU_GYRO_ZOUTH_REG, 1, &z_h);
+    res |= MPU_Read_Len(MPU_ADDR, MPU_GYRO_ZOUTL_REG, 1, &z_l);
+
+    uart_log_data('@');
+    uart_log_number(x_h);
+    uart_log_data('|');
+    uart_log_number(x_l);
+    uart_log_data('|');
+    uart_log_number(y_h);
+    uart_log_data('|');
+    uart_log_number(y_l);
+    uart_log_data('|');
+    uart_log_number(z_h);
+    uart_log_data('|');
+    uart_log_number(z_l);
+    uart_log_data('#');
+    uart_log_enter_char();
+
     if(res==0)
     {
-        *gx=((uint16_t)buf[0]<<8)|buf[1];
-        *gy=((uint16_t)buf[2]<<8)|buf[3];
-        *gz=((uint16_t)buf[4]<<8)|buf[5];
+        *gx=((uint16_t)x_h << 8) | x_l;
+        *gy=((uint16_t)y_h << 8) | y_l;
+        *gz=((uint16_t)z_h << 8) | z_l;
     }
     return res;;
 }
+
+
 //得到加速度值(原始值)
 //gx,gy,gz:陀螺仪x,y,z轴的原始读数(带符号)
 //返回值:0,成功
@@ -116,7 +139,7 @@ uint8_t MPU_Get_Accelerometer(short *ax,short *ay,short *az)
         *ay=((uint16_t)buf[2]<<8)|buf[3];
         *az=((uint16_t)buf[4]<<8)|buf[5];
     }
-    return res;;
+    return res;
 }
 //IIC连续写
 //addr:器件地址

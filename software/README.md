@@ -13,8 +13,9 @@ ubuntu下安装： apt install arm-none-eabi-gcc
 $ sudo apt-get install libusb-1.0
 $ sudo apt-get install cmake
 $ sudo apt-get install libgtk-3-dev
+$ sudo apt install libreadline-dev
 
-# 安装
+# 安装JLink
 $ git clone https://github.com/stlink-org/stlink
 $ cd stlink
 $ cmake
@@ -33,8 +34,8 @@ $ sudo apt install stlink-gui
 $ st-flash --version
         v1.7.0
 
-# 安装JLink
-$ sudo apt install libreadline-dev
+# 安装flymcu
+$ sudo apt-get install stm32flash
 ```
 ## 编译
 ```shell
@@ -68,8 +69,6 @@ $ sudo st-flash write gimbal.bin 0x8000000
 方式2：flymcu的stm32flash
 需要boot0置1， boot1置0不动。
 ```shell
-# 安装软件
-$ sudo apt-get install stm32flash
 # boot0跳线置1
 $ sudo stm32flash -w gimbal.hex -v -g 0x0 /dev/ttyUSB0
 ```
