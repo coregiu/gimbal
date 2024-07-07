@@ -6,15 +6,34 @@ struct gimbal_info pre_gimbal_info = {0, 0, 0};
 
 void create_timer_executor()
 {
-    TimerHandle_t xTimer;
-    const TickType_t xFrequency = pdMS_TO_TICKS(100); // 定时器频率100MS
-    const BaseType_t xAutoReload = pdTRUE; // 设置为自动装载
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+    NVIC_InitTypeDef NVIC_InitStructure;
 
-    xTimer = xTimerCreate("GimbalTask", xFrequency, xAutoReload, NULL, gimbal_task_callback);
-    if (xTimer != NULL)
-    {
-        xTimerStart(xTimer, 0); // 启动定时器
-    }
+    // 使能TIM2时钟
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
+
+    // 定时器参数配置
+    // 假设系统时钟为72MHz，TIM2时钟源为APB1（经过2分频后为36MHz）
+    // 设置预分频值为35999，则TIM2的计数频率为36MHz/(35999+1)=1KHz
+    // 设置自动重载值为999，则中断周期为(999+1)*1ms=1s
+    TIM_TimeBaseStructure.TIM_Period = 999;
+    TIM_TimeBaseStructure.TIM_Prescaler = 35999;
+    TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
+
+    // 使能TIM2的更新中断
+    TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
+
+    // 中断优先级配置
+    NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 4;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+
+    // 启动TIM2
+    TIM_Cmd(TIM2, ENABLE);
 }
 
 void init_timer_module()
@@ -70,23 +89,27 @@ void update_timer_state(struct command_context *command_context)
 
 }
 
-void gimbal_task_callback(TimerHandle_t xTimer)
+void TIM2_IRQHandler(void)
 {
-    LED = ~LED;
-    uint8_t result = MPU_Get_Gyroscope(&(gimbal_info.gyro_x), &(gimbal_info.gyro_x),&(gimbal_info.gyro_x));
-    if (result != 0)
-    {
-        uart_log_string_data("mpu read error");
-        return;
+    if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET) {
+        // 清除更新中断标志位
+        TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
+        LED = ~LED;
+        uint8_t result = MPU_Get_Gyroscope(&(gimbal_info.gyro_x), &(gimbal_info.gyro_x),&(gimbal_info.gyro_x));
+        if (result != 0)
+        {
+            uart_log_string_data("mpu read error");
+            return;
+        }
+        if (compare_gimbal_info(&pre_gimbal_info, &gimbal_info) == 0)
+        {
+            // 位置没有变化
+            return;
+        }
+        set_gimbal_info(&pre_gimbal_info, &gimbal_info);
+        log_gyro_info(&gimbal_info);
+        show_gimbal_info(&gimbal_info);
     }
-    if (compare_gimbal_info(&pre_gimbal_info, &gimbal_info) == 0)
-    {
-        // 位置没有变化
-        return;
-    }
-    set_gimbal_info(&pre_gimbal_info, &gimbal_info);
-    log_gyro_info(&gimbal_info);
-    show_gimbal_info(&gimbal_info);
 }
 
 const struct module_command_executor timer_executor = {init_timer_module, update_timer_state};
