@@ -131,3 +131,62 @@ u8 IIC_Read_Byte(unsigned char ack)
         IIC_Ack(); //发送ACK
     return receive;
 }
+
+/**************************实现函数********************************************
+*函数原型:		bool i2cWrite(uint8_t addr, uint8_t reg, uint8_t data)
+*功　　能:
+*******************************************************************************/
+int i2cWrite(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *data)
+{
+    int i;
+    IIC_Start();
+    IIC_Send_Byte(addr << 1);
+    if (!IIC_Wait_Ack())
+    {
+        IIC_Stop();
+        return 1;
+    }
+    IIC_Send_Byte(reg);
+    IIC_Wait_Ack();
+    for (i = 0; i < len; i++)
+    {
+        IIC_Send_Byte(data[i]);
+        if (!IIC_Wait_Ack())
+        {
+            IIC_Stop();
+            return 0;
+        }
+    }
+    IIC_Stop();
+    return 0;
+}
+/**************************实现函数********************************************
+*函数原型:		bool i2cWrite(uint8_t addr, uint8_t reg, uint8_t data)
+*功　　能:
+*******************************************************************************/
+int i2cRead(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf)
+{
+    IIC_Start();
+    IIC_Send_Byte(addr << 1);
+    if (!IIC_Wait_Ack())
+    {
+        IIC_Stop();
+        return 1;
+    }
+    IIC_Send_Byte(reg);
+    IIC_Wait_Ack();
+    IIC_Start();
+    IIC_Send_Byte((addr << 1) + 1);
+    IIC_Wait_Ack();
+    while (len)
+    {
+        if (len == 1)
+            *buf = IIC_Read_Byte(0);
+        else
+            *buf = IIC_Read_Byte(1);
+        buf++;
+        len--;
+    }
+    IIC_Stop();
+    return 0;
+}

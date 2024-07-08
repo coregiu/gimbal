@@ -43,4 +43,7 @@ u8 IIC_Wait_Ack(void);               //IIC等待ACK信号
 void IIC_Ack(void);                  //IIC发送ACK信号
 void IIC_NAck(void);                 //IIC不发送ACK信号
 
+int i2cWrite(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *data);
+int i2cRead(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf);
+
 #endif
