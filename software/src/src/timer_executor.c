@@ -2,8 +2,8 @@
 #include "mpu6050.h"
 #include "led_display.h"
 
-struct gimbal_info gimbal_info = {0, 0, 0};
-struct gimbal_info pre_gimbal_info = {0, 0, 0};
+struct gimbal_info gimbal_info = {0, 0, 0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0};
+struct gimbal_info pre_gimbal_info = {0, 0, 0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0};
 
 void create_timer_executor()
 {
@@ -75,17 +75,28 @@ void set_gimbal_info(struct gimbal_info *pre_gimbal_info, struct gimbal_info *gi
     pre_gimbal_info->gyro_z = gimbal_info->gyro_z;
 }
 
-void log_gyro_info(struct gimbal_info *gimbal_info)
+void log_gimbal_info(struct gimbal_info *gimbal_info)
 {
-    uart_log_data('X');
-    uart_log_data(':');
+    uart_log_string_no_enter("G_X:");
     uart_log_number(gimbal_info->gyro_x);
-    uart_log_data('Y');
-    uart_log_data(':');
+    uart_log_string_no_enter("|G_Y:");
     uart_log_number(gimbal_info->gyro_y);
-    uart_log_data('Z');
-    uart_log_data(':');
+    uart_log_string_no_enter("|G_Z:");
     uart_log_number(gimbal_info->gyro_z);
+    uart_log_string_no_enter("|A_X:");
+    uart_log_number(gimbal_info->accl_x);
+    uart_log_string_no_enter("|A_Y:");
+    uart_log_number(gimbal_info->accl_y);
+    uart_log_string_no_enter("|A_Z:");
+    uart_log_number(gimbal_info->accl_z);
+    uart_log_string_no_enter("|roll:");
+    uart_log_number(gimbal_info->roll);
+    uart_log_string_no_enter("|pitch:");
+    uart_log_number(gimbal_info->pitch);
+    uart_log_string_no_enter("|yaw:");
+    uart_log_number(gimbal_info->yaw);
+    uart_log_string_no_enter("|Temp:");
+    uart_log_number(gimbal_info->temperature);
     uart_log_enter_char();
 }
 
@@ -101,13 +112,15 @@ void TIM2_IRQHandler(void)
         TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
         LED = ~LED;
         uint8_t result = MPU_Get_Gyroscope(&gimbal_info.gyro_x, &gimbal_info.gyro_y, &gimbal_info.gyro_z);
+        result |= MPU_Get_Accelerometer(&gimbal_info.accl_x, &gimbal_info.accl_y, &gimbal_info.accl_z);
+        gimbal_info.temperature = MPU_Get_Temperature();
         if (result != 0)
         {
             uart_log_string_data("mpu read error");
             return;
         }
 
-        log_gyro_info(&gimbal_info);
+        log_gimbal_info(&gimbal_info);
         if (compare_gimbal_info(&pre_gimbal_info, &gimbal_info) == 0)
         {
             // 位置没有变化

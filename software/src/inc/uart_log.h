@@ -24,9 +24,14 @@
 void uart_log_data(uint16_t log_data);
 
 /**
- * log string
+ * log string with enter
  */
 void uart_log_string_data(char *log_data);
+
+/**
+ * log string without enter
+ */
+void uart_log_string_no_enter(char *log_data);
 
 /**
  * send enter key to serial port

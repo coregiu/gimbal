@@ -61,6 +61,13 @@ struct gimbal_info
     short gyro_x;
     short gyro_y;
     short gyro_z;
+    short accl_x;
+    short accl_y;
+    short accl_z;
+    float temperature;
+    float pitch;
+    float roll;
+    float yaw;
 };
 
 extern struct gimbal_info gimbal_info;
