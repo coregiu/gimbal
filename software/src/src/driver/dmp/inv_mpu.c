@@ -22,6 +22,7 @@
 #include "mpu6050.h"
 #include "delay.h"
 #include "iic.h"
+#include "uart_log.h"
 
 /* The following functions must be defined for this platform:
  * i2c_write(unsigned char slave_addr, unsigned char reg_addr,
@@ -57,8 +58,6 @@
 //}
 //#define log_i(...)     do {} while (0)
 //#define log_e(...)     do {} while (0)
-#define log_e printf
-#define log_i printf
 /* labs is already defined by TI's toolchain. */
 /* fabs is for doubles. fabsf is for floats. */
 #define fabs fabsf
@@ -76,8 +75,7 @@ static inline int reg_int_cb(struct int_param_s *int_param)
     return msp430_reg_int_cb(int_param->cb, int_param->pin, int_param->lp_exit,
                              int_param->active_low);
 }
-#define log_i MPL_LOGI
-#define log_e MPL_LOGE
+
 /* labs is already defined by TI's toolchain. */
 /* fabs is for doubles. fabsf is for floats. */
 #define fabs fabsf
@@ -101,8 +99,7 @@ static inline int reg_int_cb(struct int_param_s *int_param)
     sensor_board_irq_connect(int_param->pin, int_param->cb, int_param->arg);
     return 0;
 }
-#define log_i MPL_LOGI
-#define log_e MPL_LOGE
+
 /* UC3 is a 32-bit processor, so abs and labs are equivalent. */
 #define labs abs
 #define fabs(x) (((x) > 0) ? (x) : -(x))
@@ -807,7 +804,9 @@ int mpu_init(void)
             st.chip_cfg.accel_half = 0;
         else
         {
-            log_e("Unsupported software product rev %d.\n", rev);
+            uart_log_string_no_enter("Unsupported software product rev ");
+            uart_log_number(rev);
+            uart_log_enter_char();
             return -1;
         }
     }
@@ -818,12 +817,12 @@ int mpu_init(void)
         rev = data[0] & 0x0F;
         if (!rev)
         {
-            log_e("Product ID read as 0 indicates device is either incompatible or an MPU3050.\r\n");
+            uart_log_string_data("Product ID read as 0 indicates device is either incompatible or an MPU3050.");
             return -1;
         }
         else if (rev == 4)
         {
-            log_i("Half sensitivity part found.\r\n");
+            uart_log_string_data("Half sensitivity part found.");
             st.chip_cfg.accel_half = 1;
         }
         else
@@ -837,7 +836,7 @@ int mpu_init(void)
         st.chip_cfg.accel_half = 0;
     else
     {
-        log_e("Unsupported software product rev %d.\r\n", rev);
+        uart_log_string_data("Unsupported software product rev %d.", rev);
         return -1;
     }
 
