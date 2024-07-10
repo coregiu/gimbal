@@ -40,15 +40,17 @@ void create_timer_executor()
 void init_timer_module()
 {
     create_timer_executor();
-    uint8_t result = MPU_Init();
-    if (result != 0)
-    {
-        uart_log_string_data("mpu init error");
-    }
-    else
-    {
-        uart_log_string_data("mpu init success");
-    }
+    MPU6050_initialize();     //=====MPU6050初始化
+	DMP_Init();
+    // uint8_t result = MPU_Init();
+    // if (result != 0)
+    // {
+    //     uart_log_string_data("mpu init error");
+    // }
+    // else
+    // {
+    //     uart_log_string_data("mpu init success");
+    // }
 }
 
 uchar compare_gimbal_info(struct gimbal_info *pre_gimbal_info, struct gimbal_info *gimbal_info)
@@ -111,15 +113,15 @@ void TIM2_IRQHandler(void)
         // 清除更新中断标志位
         TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
         LED = ~LED;
-        uint8_t result = MPU_Get_Gyroscope(&gimbal_info.gyro_x, &gimbal_info.gyro_y, &gimbal_info.gyro_z);
-        result |= MPU_Get_Accelerometer(&gimbal_info.accl_x, &gimbal_info.accl_y, &gimbal_info.accl_z);
-        gimbal_info.temperature = MPU_Get_Temperature();
-        if (result != 0)
-        {
-            uart_log_string_data("mpu read error");
-            return;
-        }
-
+        // uint8_t result = MPU_Get_Gyroscope(&gimbal_info.gyro_x, &gimbal_info.gyro_y, &gimbal_info.gyro_z);
+        // result |= MPU_Get_Accelerometer(&gimbal_info.accl_x, &gimbal_info.accl_y, &gimbal_info.accl_z);
+        // gimbal_info.temperature = MPU_Get_Temperature();
+        // if (result != 0)
+        // {
+        //     uart_log_string_data("mpu read error");
+        //     return;
+        // }
+        Read_DMP(&gimbal_info.pitch, &gimbal_info.roll, &gimbal_info.yaw);
         log_gimbal_info(&gimbal_info);
         if (compare_gimbal_info(&pre_gimbal_info, &gimbal_info) == 0)
         {
