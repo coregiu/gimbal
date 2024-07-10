@@ -78,9 +78,6 @@ void notify_all(enum module_def module, char command, enum command_type type)
     case MODULE_VEHICLE:
         vehicle_executor.update_state(&command_context);
         break;
-    case MODULE_VEDIO:
-        video_executor.update_state(&command_context);
-        break;
     case MODULE_ROBOOT:
         arm_roboot_executor.update_state(&command_context);
         break;
