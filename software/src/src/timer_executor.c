@@ -1,5 +1,6 @@
 #include <timer_executor.h>
 #include "mpu6050.h"
+#include "inv_mpu.h"
 #include "led_display.h"
 
 struct gimbal_info gimbal_info = {0, 0, 0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0};
@@ -41,9 +42,12 @@ void init_timer_module()
 {
     create_timer_executor();
     uint8_t result = MPU_Init();
+    result |= mpu_dmp_init();
     if (result != 0)
     {
-        uart_log_string_data("mpu init error");
+        uart_log_string_no_enter("mpu init error: ");
+        uart_log_number(result);
+        uart_log_enter_char();
     }
     else
     {
@@ -111,16 +115,25 @@ void TIM2_IRQHandler(void)
         // 清除更新中断标志位
         TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
         LED = ~LED;
-        uint8_t result = MPU_Get_Gyroscope(&gimbal_info.gyro_x, &gimbal_info.gyro_y, &gimbal_info.gyro_z);
+
+        uint8_t result = mpu_dmp_get_data(&gimbal_info.pitch, &gimbal_info.roll, &gimbal_info.yaw);
+        if (result != 0)
+        {
+            uart_log_string_no_enter("failed to read pitch: ");
+            uart_log_number(result);
+            uart_log_enter_char();
+        }
+
+	    result |= MPU_Get_Gyroscope(&gimbal_info.gyro_x, &gimbal_info.gyro_y, &gimbal_info.gyro_z);
         result |= MPU_Get_Accelerometer(&gimbal_info.accl_x, &gimbal_info.accl_y, &gimbal_info.accl_z);
         gimbal_info.temperature = MPU_Get_Temperature();
+
+        log_gimbal_info(&gimbal_info);
         if (result != 0)
         {
             uart_log_string_data("mpu read error");
             return;
         }
-
-        log_gimbal_info(&gimbal_info);
         if (compare_gimbal_info(&pre_gimbal_info, &gimbal_info) == 0)
         {
             // 位置没有变化
