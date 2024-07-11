@@ -122,6 +122,7 @@ void TIM2_IRQHandler(void)
         //     return;
         // }
         Read_DMP(&gimbal_info.pitch, &gimbal_info.roll, &gimbal_info.yaw);
+        gimbal_info.temperature = Read_Temperature();
         log_gimbal_info(&gimbal_info);
         if (compare_gimbal_info(&pre_gimbal_info, &gimbal_info) == 0)
         {

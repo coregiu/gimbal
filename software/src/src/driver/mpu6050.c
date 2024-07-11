@@ -270,9 +270,10 @@ void DMP_Init(void)
 {
     u8 temp[1] = {0};
     i2cRead(0x68, 0x75, 1, temp);
-    uart_log_string_data("mpu_set_sensor complete ......");
+    uart_log_string_data("read reg data");
+    uart_log_number(temp[0]);
     if (temp[0] != 0x68)
-        NVIC_SystemReset();
+        // NVIC_SystemReset();
     if (!mpu_init())
     {
         if (!mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL))
@@ -331,6 +332,8 @@ int Read_Temperature(void)
 {
     float Temp;
     Temp = (I2C_ReadOneByte(devAddr, MPU6050_RA_TEMP_OUT_H) << 8) + I2C_ReadOneByte(devAddr, MPU6050_RA_TEMP_OUT_L);
+    uart_log_data('T');
+    uart_log_number(Temp);
     if (Temp > 32768)
         Temp -= 65536;
     Temp = (36.53 + Temp / 340) * 10;
