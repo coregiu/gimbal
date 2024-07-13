@@ -7,7 +7,7 @@ set(sources
     #src/stm32f10x_crc.c
     #src/stm32f10x_dac.c
     #src/stm32f10x_dbgmcu.c
-    #src/stm32f10x_dma.c
+    src/stm32f10x_dma.c
     #src/stm32f10x_exti.c
     src/stm32f10x_flash.c
     #src/stm32f10x_fsmc.c

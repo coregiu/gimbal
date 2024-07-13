@@ -26,6 +26,7 @@
 #include "inv_mpu_dmp_motion_driver.h"
 #include "mpu6050.h"
 #include "usart.h"
+#include "uart_log.h"
 
 #define MPU6050                     // 定义我们使用的传感器为MPU6050
 #define MOTION_DRIVER_TARGET_MSP430 // 定义驱动部分,采用MSP430的驱动(移植到STM32F1)
@@ -2436,7 +2437,27 @@ int mpu_load_firmware(unsigned short length, const unsigned char *firmware,
         if (mpu_read_mem(ii, this_write, cur))
             return 4;
         if (memcmp(firmware + ii, cur, this_write))
+        {
+            uart_log_data('F');
+            uart_log_number(ii);
+            uart_log_data('|');
+            uart_log_number(this_write);
+            uart_log_enter_char();
+            for (int k = 0; k < this_write; k++)
+            {
+                uart_log_number(firmware[k]);
+                uart_log_data('|');
+            }
+            uart_log_enter_char();
+
+            for (int k = 0; k < this_write; k++)
+            {
+                uart_log_number(cur[k]);
+                uart_log_data('|');
+            }
+            uart_log_enter_char();
             return 5;
+        }
     }
 
     /* Set program start address. */
@@ -3047,36 +3068,86 @@ u8 mpu_dmp_init(void)
     {
         res = mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL); // 设置所需要的传感器
         if (res)
-            return 1;
+        {
+            uart_log_string_no_enter("mpu_set_sensors error");
+            uart_log_number(res);
+            uart_log_enter_char();
+            return res;
+        }
+
         res = mpu_configure_fifo(INV_XYZ_GYRO | INV_XYZ_ACCEL); // 设置FIFO
         if (res)
-            return 2;
+        {
+            uart_log_string_no_enter("mpu_configure_fifo error");
+            uart_log_number(res);
+            uart_log_enter_char();
+            return res;
+        }
+
         res = mpu_set_sample_rate(DEFAULT_MPU_HZ); // 设置采样率
         if (res)
-            return 3;
+        {
+            uart_log_string_no_enter("mpu_set_sample_rate error");
+            uart_log_number(res);
+            uart_log_enter_char();
+            return res;
+        }
+
         res = dmp_load_motion_driver_firmware(); // 加载dmp固件
         if (res)
         {
+            uart_log_string_no_enter("dmp_load_motion_driver_firmware error");
+            uart_log_number(res);
+            uart_log_enter_char();
             return res;
         }
 
         res = dmp_set_orientation(inv_orientation_matrix_to_scalar(gyro_orientation)); // 设置陀螺仪方向
         if (res)
-            return 5;
+        {
+            uart_log_string_no_enter("dmp_set_orientation error");
+            uart_log_number(res);
+            uart_log_enter_char();
+            return res;
+        }
+
         res = dmp_enable_feature(DMP_FEATURE_6X_LP_QUAT | DMP_FEATURE_TAP | // 设置dmp功能
                                  DMP_FEATURE_ANDROID_ORIENT | DMP_FEATURE_SEND_RAW_ACCEL | DMP_FEATURE_SEND_CAL_GYRO |
                                  DMP_FEATURE_GYRO_CAL);
         if (res)
-            return 6;
+        {
+            uart_log_string_no_enter("dmp_enable_feature error");
+            uart_log_number(res);
+            uart_log_enter_char();
+            return res;
+        }
+
         res = dmp_set_fifo_rate(DEFAULT_MPU_HZ); // 设置DMP输出速率(最大不超过200Hz)
         if (res)
-            return 7;
+        {
+            uart_log_string_no_enter("dmp_set_fifo_rate error");
+            uart_log_number(res);
+            uart_log_enter_char();
+            return res;
+        }
+
         res = run_self_test(); // 自检
         if (res)
-            return 8;
+        {
+            uart_log_string_no_enter("run_self_test error");
+            uart_log_number(res);
+            uart_log_enter_char();
+            return res;
+        }
+
         res = mpu_set_dmp_state(1); // 使能DMP
         if (res)
-            return 9;
+        {
+            uart_log_string_no_enter("mpu_set_dmp_state error");
+            uart_log_number(res);
+            uart_log_enter_char();
+            return res;
+        }
     }
     else
         return 10;

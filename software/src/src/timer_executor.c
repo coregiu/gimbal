@@ -5,6 +5,7 @@
 
 struct gimbal_info gimbal_info = {0, 0, 0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0};
 struct gimbal_info pre_gimbal_info = {0, 0, 0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0};
+int32_t gimbale_data_buffer[6] = {0};
 
 void create_timer_executor()
 {
@@ -38,9 +39,39 @@ void create_timer_executor()
     TIM_Cmd(TIM2, ENABLE);
 }
 
+void bind_dma1_to_iic2()
+{
+    // 使能I2C2时钟
+    RCC->APB1ENR |= RCC_APB1ENR_I2C2EN;
+    // 使能DMA1时钟
+    RCC->AHBENR |= RCC_AHBENR_DMA1EN;
+
+    // 设置DMA通道1为从外设到内存的传输
+    DMA1_Channel1->CCR = DMA_CCR_DIR | DMA_CCR_MINC | DMA_CCR_PL_1; // Direction: PERIPH to MEMORY, Increment memory address, Priority level high
+
+    // 设置外围设备地址为I2C数据寄存器
+    DMA1_Channel1->CPAR = (uint32_t)(&(I2C2->DR));
+
+    // 设置内存地址为数据缓冲区
+    DMA1_Channel1->CMAR = (uint32_t)gimbale_data_buffer;
+
+    // 设置数据长度
+    DMA1_Channel1->CNDTR = 6; // Assuming we read 6 bytes from MPU6050
+
+    // 使能DMA通道
+    DMA1_Channel1->CCR |= DMA_CCR_EN;
+
+    NVIC_InitTypeDef NVIC_InitStructure;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+}
+
 void init_timer_module()
 {
     create_timer_executor();
+    bind_dma1_to_iic2();
     uint8_t result = MPU_Init();
     if (result != 0)
     {
