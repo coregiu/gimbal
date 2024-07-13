@@ -9,6 +9,7 @@
 **/
 
 #include <iic.h>
+#include "stm32f10x_i2c.h"
 
 //初始化IIC
 void IIC_Init(void)
@@ -17,10 +18,24 @@ void IIC_Init(void)
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE); //使能GPIOB时钟
 
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD; //推挽输出
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD; //IIC用开漏输出
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
     GPIO_SetBits(GPIOB, GPIO_Pin_10 | GPIO_Pin_11); //PB10,PB11 输出高
+
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C2, ENABLE); // 使能I2C2时钟
+    I2C_InitTypeDef I2C_InitStructure;
+
+    I2C_InitStructure.I2C_ClockSpeed = 400000; // 设置时钟速率为400kHz
+    I2C_InitStructure.I2C_Mode = I2C_Mode_I2C; // I²C模式
+    I2C_InitStructure.I2C_DutyCycle = I2C_DutyCycle_2; // 时钟占空比
+    I2C_InitStructure.I2C_OwnAddress1 = 0; // 自身地址
+    I2C_InitStructure.I2C_Ack = I2C_Ack_Enable; // 开启ACK
+    I2C_InitStructure.I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit; // 7位应答地址
+
+    I2C_Init(I2C2, &I2C_InitStructure); // 初始化I2C2
+
+    I2C_Cmd(I2C2, ENABLE); // 启用I2C2
 }
 
 //产生IIC起始信号

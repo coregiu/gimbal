@@ -12,7 +12,7 @@ set(sources
     src/stm32f10x_flash.c
     #src/stm32f10x_fsmc.c
     src/stm32f10x_gpio.c
-    #src/stm32f10x_i2c.c
+    src/stm32f10x_i2c.c
     src/stm32f10x_rcc.c
     src/stm32f10x_rtc.c
     #src/stm32f10x_sdio.c

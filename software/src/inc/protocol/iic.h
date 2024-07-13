@@ -12,7 +12,7 @@
 #ifndef __PROTOCOL_IIC_H
 #define __PROTOCOL_IIC_H
 
-#include "stm32f10x.h"
+#include "stm32f10x_conf.h"
 #include "sys.h"
 #include "delay.h"
 
