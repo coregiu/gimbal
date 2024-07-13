@@ -2,6 +2,28 @@
 #include <mpu6050.h>
 #include "uart_log.h"
 
+#define RAD_TO_DEG 57.295779513082320876798154814105
+
+const double Accel_Z_corrector = 14418.0;
+
+Kalman_t KalmanX = {
+        .Q_angle = 0.001f,
+        .Q_bias = 0.003f,
+        .R_measure = 0.03f
+};
+
+Kalman_t KalmanY = {
+        .Q_angle = 0.001f,
+        .Q_bias = 0.003f,
+        .R_measure = 0.03f,
+};
+
+Kalman_t KalmanZ = {
+        .Q_angle = 0.001f,
+        .Q_bias = 0.003f,
+        .R_measure = 0.03f,
+};
+
 //初始化MPU6050
 //返回值:0,成功
 //    其他,错误代码
@@ -274,6 +296,39 @@ uint8_t MPU_Read_Byte(uint8_t reg)
     res=MPU_IIC_Read_Byte(0);//读取数据,发送nACK
     MPU_IIC_Stop();			//产生一个停止条件
     return res;
+}
+
+void Compute_Angle(struct gimbal_info *gimbal)
+{
+    gimbal->accl_x = gimbal->accl_x_raw / 16384.0;
+    gimbal->accl_y = gimbal->accl_y_raw / 16384.0;
+    gimbal->accl_z = gimbal->accl_z_raw / Accel_Z_corrector;
+
+    gimbal->gyro_x = gimbal->gyro_x_raw / 131.0;
+    gimbal->gyro_y = gimbal->gyro_y_raw / 131.0;
+    gimbal->gyro_z = gimbal->gyro_z_raw / 131.0;
+
+    // Kalman angle solve
+    double dt = (double) (HAL_GetTick() - timer) / 1000;
+    timer = HAL_GetTick();
+    double roll;
+    double roll_sqrt = sqrt(
+            gimbal->accl_x_raw * gimbal->accl_x_raw + gimbal->accl_z_raw * gimbal->accl_z_raw);
+    if (roll_sqrt != 0.0) {
+        roll = atan(gimbal->accl_y_raw / roll_sqrt) * RAD_TO_DEG;
+    } else {
+        roll = 0.0;
+    }
+    double pitch = atan2(-gimbal->accl_x_raw, gimbal->accl_z_raw) * RAD_TO_DEG;
+    if ((pitch < -90 && gimbal->pitch > 90) || (pitch > 90 && gimbal->pitch < -90)) {
+        KalmanY.angle = pitch;
+        gimbal->pitch = pitch;
+    } else {
+        gimbal->pitch = Kalman_getAngle(&KalmanY, pitch, gimbal->gyro_y, dt);
+    }
+    if (fabs(gimbal->pitch) > 90)
+        gimbal->gyro_x = -gimbal->gyro_x;
+    gimbal->roll = Kalman_getAngle(&KalmanX, roll, gimbal->gyro_y, dt);
 }
 
 double Kalman_getAngle(Kalman_t *Kalman, double newAngle, double newRate, double dt) {

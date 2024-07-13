@@ -102,6 +102,32 @@ typedef struct {
 } Kalman_t;
 
 
+// 陀螺仪信息
+struct gimbal_info
+{
+    short gyro_x_raw;
+    short gyro_y_raw;
+    short gyro_z_raw;
+
+    double gyro_x;
+    double gyro_y;
+    double gyro_z;
+
+    short accl_x_raw;
+    short accl_y_raw;
+    short accl_z_raw;
+
+    double accl_x;
+    double accl_y;
+    double accl_z;
+
+    float temperature;
+
+    float pitch;
+    float roll;
+    float yaw;
+};
+
 //因为模块AD0默认接GND,所以转为读写地址后,为0XD1和0XD0(如果接VCC,则为0XD3和0XD2)
 //#define MPU_READ    0XD1
 //#define MPU_WRITE   0XD0
@@ -121,6 +147,8 @@ uint8_t MPU_Set_Fifo(uint8_t sens);
 float MPU_Get_Temperature(void);
 uint8_t MPU_Get_Gyroscope(short *gx,short *gy,short *gz);
 uint8_t MPU_Get_Accelerometer(short *ax,short *ay,short *az);
+
+void Compute_Angle(struct gimbal_info *gimbal);
 
 double Kalman_getAngle(Kalman_t *Kalman, double newAngle, double newRate, double dt);
 

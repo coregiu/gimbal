@@ -19,6 +19,7 @@
 #include "queue.h"
 #include "task.h"
 #include "timers.h"
+#include "mpu6050.h"
 
 // define the single light
 #define LED PCout(13)	//PC13 0-light up; 1-turn off.
@@ -53,21 +54,6 @@ struct command_context
     enum delay_type delay_type;
     enum command_type command_type;
     char command;
-};
-
-// 陀螺仪信息
-struct gimbal_info
-{
-    short gyro_x;
-    short gyro_y;
-    short gyro_z;
-    short accl_x;
-    short accl_y;
-    short accl_z;
-    float temperature;
-    float pitch;
-    float roll;
-    float yaw;
 };
 
 extern struct gimbal_info gimbal_info;
