@@ -130,7 +130,7 @@ void TIM2_IRQHandler(void)
             uart_log_enter_char();
         }
 
-	    result |= MPU_Get_Gyroscope(&gimbal_info.gyro_x, &gimbal_info.gyro_y, &gimbal_info.gyro_z);
+	    result = MPU_Get_Gyroscope(&gimbal_info.gyro_x, &gimbal_info.gyro_y, &gimbal_info.gyro_z);
         result |= MPU_Get_Accelerometer(&gimbal_info.accl_x, &gimbal_info.accl_y, &gimbal_info.accl_z);
         gimbal_info.temperature = MPU_Get_Temperature();
 
