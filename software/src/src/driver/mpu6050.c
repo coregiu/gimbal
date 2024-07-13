@@ -90,9 +90,9 @@ float MPU_Get_Temperature(void)
     float temp;
     MPU_Read_Len(MPU_ADDR,MPU_TEMP_OUTH_REG, 2, &t_h);
     MPU_Read_Len(MPU_ADDR,MPU_TEMP_OUTL_REG, 2, &t_l);
-    raw=((uint16_t)t_h << 8) | t_l;
-    temp=((double)raw)/333.87f + 21;
-    return temp;;
+    raw = ((uint16_t)t_h << 8) | t_l;
+    temp = (float) ((int16_t) raw / (float) 340.0 + (float) 36.53);;
+    return temp;
 }
 //得到陀螺仪值(原始值)
 //gx,gy,gz:陀螺仪x,y,z轴的原始读数(带符号)
