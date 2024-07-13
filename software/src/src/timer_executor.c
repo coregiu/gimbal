@@ -3,8 +3,8 @@
 #include "inv_mpu.h"
 #include "led_display.h"
 
-struct gimbal_info gimbal_info = {0, 0, 0, 0.0, 0.0, 0.0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-struct gimbal_info pre_gimbal_info = {0, 0, 0, 0.0, 0.0, 0.0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+struct gimbal_info gimbal_info = {0, 0, 0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0};
+struct gimbal_info pre_gimbal_info = {0, 0, 0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0};
 int32_t gimbale_data_buffer[6] = {0};
 
 void create_timer_executor()
@@ -79,30 +79,30 @@ void init_timer_module()
         uart_log_number(result);
         uart_log_enter_char();
     }
-    // result = mpu_dmp_init();
-    // if (result != 0)
-    // {
-    //     uart_log_string_no_enter("dmp init error: ");
-    //     uart_log_number(result);
-    //     uart_log_enter_char();
-    // }
-    // else
-    // {
-    //     uart_log_string_data("mpu init success");
-    // }
+    result = mpu_dmp_init();
+    if (result != 0)
+    {
+        uart_log_string_no_enter("dmp init error: ");
+        uart_log_number(result);
+        uart_log_enter_char();
+    }
+    else
+    {
+        uart_log_string_data("mpu init success");
+    }
 }
 
 uchar compare_gimbal_info(struct gimbal_info *pre_gimbal_info, struct gimbal_info *gimbal_info)
 {
-    if (pre_gimbal_info->gyro_x != gimbal_info->gyro_x)
+    if (pre_gimbal_info->gyro_x_raw != gimbal_info->gyro_x_raw)
     {
         return 1;
     }
-    if (pre_gimbal_info->gyro_y != gimbal_info->gyro_y)
+    if (pre_gimbal_info->gyro_y_raw != gimbal_info->gyro_y_raw)
     {
         return 1;
     }
-    if (pre_gimbal_info->gyro_z != gimbal_info->gyro_z)
+    if (pre_gimbal_info->gyro_z_raw != gimbal_info->gyro_z_raw)
     {
         return 1;
     }
@@ -111,9 +111,9 @@ uchar compare_gimbal_info(struct gimbal_info *pre_gimbal_info, struct gimbal_inf
 
 void set_gimbal_info(struct gimbal_info *pre_gimbal_info, struct gimbal_info *gimbal_info)
 {
-    pre_gimbal_info->gyro_x = gimbal_info->gyro_x;
-    pre_gimbal_info->gyro_y = gimbal_info->gyro_y;
-    pre_gimbal_info->gyro_z = gimbal_info->gyro_z;
+    pre_gimbal_info->gyro_x_raw = gimbal_info->gyro_x_raw;
+    pre_gimbal_info->gyro_y_raw = gimbal_info->gyro_y_raw;
+    pre_gimbal_info->gyro_z_raw = gimbal_info->gyro_z_raw;
 }
 
 void log_gimbal_info(struct gimbal_info *gimbal_info)
@@ -153,15 +153,15 @@ void TIM2_IRQHandler(void)
         TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
         LED = ~LED;
 
-        // uint8_t result = mpu_dmp_get_data(&gimbal_info.pitch, &gimbal_info.roll, &gimbal_info.yaw);
-        // if (result != 0)
-        // {
-        //     uart_log_string_no_enter("failed to read pitch: ");
-        //     uart_log_number(result);
-        //     uart_log_enter_char();
-        // }
+        uint8_t result = mpu_dmp_get_data(&gimbal_info.pitch, &gimbal_info.roll, &gimbal_info.yaw);
+        if (result != 0)
+        {
+            uart_log_string_no_enter("failed to read pitch: ");
+            uart_log_number(result);
+            uart_log_enter_char();
+        }
 
-	    uchar result = MPU_Get_Gyroscope(&gimbal_info.gyro_x_raw, &gimbal_info.gyro_y_raw, &gimbal_info.gyro_z_raw);
+	    result = MPU_Get_Gyroscope(&gimbal_info.gyro_x_raw, &gimbal_info.gyro_y_raw, &gimbal_info.gyro_z_raw);
         result |= MPU_Get_Accelerometer(&gimbal_info.accl_x_raw, &gimbal_info.accl_y_raw, &gimbal_info.accl_z_raw);
         gimbal_info.temperature = MPU_Get_Temperature();
 
