@@ -42,10 +42,16 @@ void init_timer_module()
 {
     create_timer_executor();
     uint8_t result = MPU_Init();
-    result |= mpu_dmp_init();
     if (result != 0)
     {
         uart_log_string_no_enter("mpu init error: ");
+        uart_log_number(result);
+        uart_log_enter_char();
+    }
+    result = mpu_dmp_init();
+    if (result != 0)
+    {
+        uart_log_string_no_enter("dmp init error: ");
         uart_log_number(result);
         uart_log_enter_char();
     }
