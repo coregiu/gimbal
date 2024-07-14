@@ -31,6 +31,7 @@ const char command_module_map[COMMANDS_LENGTH][2] = {{COMMAND_STOP, MODULE_VEHIC
                                                       {COMMAND_OPEN_INTELI, MODULE_VEDIO},
                                                       {COMMAND_CLOSE_INTELI, MODULE_VEDIO},
                                                       {COMMAND_PLAYING, MODULE_INTELI},
+                                                      {COMMAND_ADAPTE_SERVO, MODULE_ROBOOT},
                                                       {COMMAND_UNKNOWN, MODULE_UNKNOWN}};
 
 void init_protocols()

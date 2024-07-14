@@ -161,6 +161,7 @@ void TIM2_IRQHandler(void)
         }
         set_gimbal_info(&pre_gimbal_info, &gimbal_info);
 
+        execute_commands(COMMAND_ADAPTE_SERVO, COMMAND_TYPE_AUTO);
         show_gimbal_info(&gimbal_info);
     }
 }

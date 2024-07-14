@@ -84,6 +84,7 @@ enum commands_def
     COMMAND_OPEN_INTELI  = 'H',
     COMMAND_CLOSE_INTELI = 'I',
     COMMAND_PLAYING      = 'J',
+    COMMAND_ADAPTE_SERVO = 'K',
     COMMAND_UNKNOWN      = 'Z'
 };
 
