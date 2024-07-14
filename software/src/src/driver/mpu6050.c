@@ -6,6 +6,16 @@
 
 const double Accel_Z_corrector = 14418.0;
 
+double  Kp = 100.0;
+double Ki = 0.002f;
+double halfT = 0.001f;
+
+double q0 = 1, q1 = 0, q2 = 0, q3 = 0;
+double exInt = 0, eyInt = 0, ezInt = 0;
+
+enum ACCE_RANGE AccR = ACC_2G;
+enum GYRO_RANGE GyrR = BPS_2000;
+
 Kalman_t KalmanX = {
     .Q_angle = 0.001f,
     .Q_bias = 0.003f,
@@ -309,55 +319,55 @@ uint8_t MPU_Read_Byte(uint8_t reg)
     return res;
 }
 
-void Compute_Angle(struct gimbal_info *gimbal)
-{
-    gimbal->accl_x = gimbal->accl_x_raw / 16384.0;
-    gimbal->accl_y = gimbal->accl_y_raw / 16384.0;
-    gimbal->accl_z = gimbal->accl_z_raw / Accel_Z_corrector;
+// void Compute_Angle(struct gimbal_info *gimbal)
+// {
+//     gimbal->accl_x = gimbal->accl_x_raw / 16384.0;
+//     gimbal->accl_y = gimbal->accl_y_raw / 16384.0;
+//     gimbal->accl_z = gimbal->accl_z_raw / Accel_Z_corrector;
 
-    gimbal->gyro_x = gimbal->gyro_x_raw / 131.0;
-    gimbal->gyro_y = gimbal->gyro_y_raw / 131.0;
-    gimbal->gyro_z = gimbal->gyro_z_raw / 131.0;
+//     gimbal->gyro_x = gimbal->gyro_x_raw / 131.0;
+//     gimbal->gyro_y = gimbal->gyro_y_raw / 131.0;
+//     gimbal->gyro_z = gimbal->gyro_z_raw / 131.0;
 
-    // Kalman angle solve
-    double dt = 1;
-    double roll;
-    double roll_sqrt = sqrt(gimbal->accl_x_raw * gimbal->accl_x_raw + gimbal->accl_z_raw * gimbal->accl_z_raw);
-    if (roll_sqrt != 0.0)
-    {
-        roll = atan(gimbal->accl_y_raw / roll_sqrt) * RAD_TO_DEG;
-    }
-    else
-    {
-        roll = 0.0;
-    }
+//     // Kalman angle solve
+//     double dt = 1;
+//     double roll;
+//     double roll_sqrt = sqrt(gimbal->accl_x_raw * gimbal->accl_x_raw + gimbal->accl_z_raw * gimbal->accl_z_raw);
+//     if (roll_sqrt != 0.0)
+//     {
+//         roll = atan(gimbal->accl_y_raw / roll_sqrt) * RAD_TO_DEG;
+//     }
+//     else
+//     {
+//         roll = 0.0;
+//     }
 
-    if (fabs(gimbal->pitch) > 90)
-        gimbal->gyro_x = -gimbal->gyro_x;
-    gimbal->roll = Kalman_getAngle(&KalmanX, roll, gimbal->gyro_x, dt);
+//     if (fabs(gimbal->pitch) > 90)
+//         gimbal->gyro_x = -gimbal->gyro_x;
+//     gimbal->roll = Kalman_getAngle(&KalmanX, roll, gimbal->gyro_x, dt);
 
-    double pitch = atan2(-gimbal->accl_x_raw, gimbal->accl_z_raw) * RAD_TO_DEG;
-    if ((pitch < -90 && gimbal->pitch > 90) || (pitch > 90 && gimbal->pitch < -90))
-    {
-        KalmanY.angle = pitch;
-        gimbal->pitch = pitch;
-    }
-    else
-    {
-        gimbal->pitch = Kalman_getAngle(&KalmanY, pitch, gimbal->gyro_y, dt);
-    }
+//     double pitch = atan2(-gimbal->accl_x_raw, gimbal->accl_z_raw) * RAD_TO_DEG;
+//     if ((pitch < -90 && gimbal->pitch > 90) || (pitch > 90 && gimbal->pitch < -90))
+//     {
+//         KalmanY.angle = pitch;
+//         gimbal->pitch = pitch;
+//     }
+//     else
+//     {
+//         gimbal->pitch = Kalman_getAngle(&KalmanY, pitch, gimbal->gyro_y, dt);
+//     }
 
-    double yaw_estimate = atan2(gimbal->accl_y, gimbal->accl_x);
-    if ((yaw_estimate < -90 && gimbal->yaw > 90) || (yaw_estimate > 90 && gimbal->yaw < -90))
-    {
-        KalmanZ.angle = yaw_estimate;
-        gimbal->yaw = yaw_estimate;
-    }
-    else
-    {
-        gimbal->yaw = Kalman_getAngle(&KalmanZ, yaw_estimate, gimbal->gyro_z, dt);
-    }
-}
+//     double yaw_estimate = atan2(gimbal->accl_y, gimbal->accl_x);
+//     if ((yaw_estimate < -90 && gimbal->yaw > 90) || (yaw_estimate > 90 && gimbal->yaw < -90))
+//     {
+//         KalmanZ.angle = yaw_estimate;
+//         gimbal->yaw = yaw_estimate;
+//     }
+//     else
+//     {
+//         gimbal->yaw = Kalman_getAngle(&KalmanZ, yaw_estimate, gimbal->gyro_z, dt);
+//     }
+// }
 
 double Kalman_getAngle(Kalman_t *Kalman, double newAngle, double newRate, double dt)
 {
@@ -387,4 +397,211 @@ double Kalman_getAngle(Kalman_t *Kalman, double newAngle, double newRate, double
     Kalman->P[1][1] -= K[1] * P01_temp;
 
     return Kalman->angle;
-};
+}
+
+double getAcceXdata(short raw_data)
+{
+    double temp;
+    switch (AccR)
+    {
+        case ACC_2G:
+            temp = (double)raw_data / 32767 * 9.8;
+            return temp;
+
+        case ACC_4G:
+            temp = (double)raw_data / 16384 * 9.8;
+            return temp;
+
+        case ACC_8G:
+            temp = (double)raw_data / 8192 * 9.8;
+            return temp;
+
+        case ACC_16G:
+            temp = (double)raw_data / 4096 * 9.8;
+            return temp;
+    }
+
+    return 0;
+}
+
+double getAcceYdata(short raw_data)
+{
+    double temp;
+    switch (AccR)
+    {
+        case ACC_2G:
+            temp = (double)raw_data / 32767 * 9.8;
+            return temp;
+
+        case ACC_4G:
+            temp = (double)raw_data / 16384 * 9.8;
+            return temp;
+
+        case ACC_8G:
+            temp = (double)raw_data / 8192 * 9.8;
+            return temp;
+
+        case ACC_16G:
+            temp = (double)raw_data / 4096 * 9.8;
+            return temp;
+    }
+
+    return 0;
+}
+
+double getAcceZdata(short raw_data)
+{
+    double temp;
+    switch (AccR)
+    {
+        case ACC_2G:
+            temp = (double)raw_data / 32767 * 9.8;
+            return temp;
+
+        case ACC_4G:
+            temp = (double)raw_data / 16384 * 9.8;
+            return temp;
+
+        case ACC_8G:
+            temp = (double)raw_data / 8192 * 9.8;
+            return temp;
+
+        case ACC_16G:
+            temp = (double)raw_data / 4096 * 9.8;
+            return temp;
+    }
+
+    return 0;
+}
+
+double getGyroXdata(short raw_data)
+{
+    double temp;
+    switch (GyrR)
+    {
+        case BPS_250:
+            temp =  (double)raw_data / 262;
+            return temp;
+
+        case BPS_500:
+            temp =  (double)raw_data / 161;
+            return temp;
+
+        case BPS_1000:
+            temp =  (double)raw_data / 65.5;
+            return temp;
+
+        case BPS_2000:
+            temp =  (double)raw_data / 32.75;
+            return temp;
+    }
+
+    return 0;
+}
+
+double getGyroYdata(short raw_data)
+{
+    double temp;
+    switch (GyrR)
+    {
+        case BPS_250:
+            temp =  (double)raw_data / 262;
+            return temp;
+
+        case BPS_500:
+            temp =  (double)raw_data / 161;
+            return temp;
+
+        case BPS_1000:
+            temp =  (double)raw_data / 65.5;
+            return temp;
+
+        case BPS_2000:
+            temp =  (double)raw_data / 32.75;
+            return temp;
+    }
+
+    return 0;
+}
+
+double getGyroZdata(short raw_data)
+{
+    double temp;
+    switch (GyrR)
+    {
+        case BPS_250:
+            temp =  (double)raw_data / 262;
+            return temp;
+
+        case BPS_500:
+            temp =  (double)raw_data / 161;
+            return temp;
+
+        case BPS_1000:
+            temp =  (double)raw_data / 65.5;
+            return temp;
+
+        case BPS_2000:
+            temp =  (double)raw_data / 32.75;
+            return temp;
+    }
+
+    return 0;
+}
+
+void Compute_Angle(struct gimbal_info *gimbal)
+{
+    double gx = getGyroXdata(gimbal->gyro_x_raw);
+    double gy = getGyroYdata(gimbal->gyro_y_raw);
+    double gz = getGyroZdata(gimbal->gyro_z_raw);
+    double ax = getAcceXdata(gimbal->accl_x_raw);
+    double ay = getAcceYdata(gimbal->accl_y_raw);
+    double az = getAcceZdata(gimbal->accl_z_raw);
+
+    double  norm;
+    double  vx, vy, vz;
+    double  ex, ey, ez;
+
+    norm = sqrt(ax*ax + ay*ay + az*az);
+    ax = ax / norm;
+    ay = ay / norm;
+    az = az / norm;
+
+    vx = 2*(q1*q3 - q0*q2);
+    vy = 2*(q0*q1 + q2*q3);
+    vz = q0*q0 - q1*q1 - q2*q2 + q3*q3;
+
+    ex = (ay*vz - az*vy);
+    ey = (az*vx - ax*vz);
+    ez = (ax*vy - ay*vx);
+
+    exInt = exInt + ex*Ki;
+    eyInt = eyInt + ey*Ki;
+    ezInt = ezInt + ez*Ki;
+
+    gx = gx + Kp*ex + exInt;
+    gy = gy + Kp*ey + eyInt;
+    gz = gz + Kp*ez + ezInt;
+
+    q0 = q0 + (-q1*gx - q2*gy - q3*gz)*halfT;
+    q1 = q1 + (q0*gx + q2*gz - q3*gy)*halfT;
+    q2 = q2 + (q0*gy - q1*gz + q3*gx)*halfT;
+    q3 = q3 + (q0*gz + q1*gy - q2*gx)*halfT;
+
+    norm = sqrt(q0*q0 + q1*q1 + q2*q2 + q3*q3);
+    q0 = q0 / norm;
+    q1 = q1 / norm;
+    q2 = q2 / norm;
+    q3 = q3 / norm;
+
+    gimbal->accl_x = ax;
+    gimbal->accl_y = ay;
+    gimbal->accl_z = az;
+    gimbal->gyro_x = gx;
+    gimbal->gyro_y = gy;
+    gimbal->gyro_z = gz;
+    gimbal->pitch  = asin(-2 * q1 * q3 + 2 * q0* q2)* 57.3;
+    gimbal->roll = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2* q2 + 1)* 57.3;
+    gimbal->yaw = atan2(2*(q1*q2 + q0*q3),q0*q0+q1*q1-q2*q2-q3*q3) * 57.3;
+}
+
