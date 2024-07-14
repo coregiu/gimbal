@@ -53,13 +53,15 @@ void show_gimbal_info(struct gimbal_info *gimbal_info)
     OLED_ShowString(40, 0, "GIMBAL", 16);
     OLED_ShowString(19, 2, "Zhang ZiYan", 8);
 
-    OLED_ShowString(20, 4, "Roll : ", 8);
-    OLED_ShowString(20, 5, "Pitch: ", 8);
-    OLED_ShowString(20, 6, "Yaw  : ", 8);
+    OLED_ShowString(27, 4, "Rol: ", 8);
+    OLED_ShowString(27, 5, "Pic: ", 8);
+    OLED_ShowString(27, 6, "Yaw: ", 8);
+    OLED_ShowString(27, 7, "Tmp: ", 8);
 
-    show_short_number(70, 4, gimbal_info->roll);
-    show_short_number(70, 5, gimbal_info->pitch);
-    show_short_number(70, 6, gimbal_info->yaw);
+    show_short_number(60, 4, gimbal_info->roll);
+    show_short_number(60, 5, gimbal_info->pitch);
+    show_short_number(60, 6, gimbal_info->yaw);
+    show_short_number(60, 7, gimbal_info->temperature);
 }
 
 const struct module_command_executor led_display_executor = {init_led_display, display_info};

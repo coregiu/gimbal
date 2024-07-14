@@ -7,47 +7,46 @@
 const double Accel_Z_corrector = 14418.0;
 
 Kalman_t KalmanX = {
-        .Q_angle = 0.001f,
-        .Q_bias = 0.003f,
-        .R_measure = 0.03f
-};
+    .Q_angle = 0.001f,
+    .Q_bias = 0.003f,
+    .R_measure = 0.03f};
 
 Kalman_t KalmanY = {
-        .Q_angle = 0.001f,
-        .Q_bias = 0.003f,
-        .R_measure = 0.03f,
+    .Q_angle = 0.001f,
+    .Q_bias = 0.003f,
+    .R_measure = 0.03f,
 };
 
 Kalman_t KalmanZ = {
-        .Q_angle = 0.001f,
-        .Q_bias = 0.003f,
-        .R_measure = 0.03f,
+    .Q_angle = 0.001f,
+    .Q_bias = 0.003f,
+    .R_measure = 0.03f,
 };
 
-//初始化MPU6050
-//返回值:0,成功
-//    其他,错误代码
+// 初始化MPU6050
+// 返回值:0,成功
+//     其他,错误代码
 uint8_t MPU_Init(void)
 {
     uint8_t res;
 
-    //TODO 初始化IIC总线
-    MPU_Write_Byte(MPU_PWR_MGMT1_REG,0X80);	//复位MPU6050
+    // TODO 初始化IIC总线
+    MPU_Write_Byte(MPU_PWR_MGMT1_REG, 0X80); // 复位MPU6050
     delay_ms(100);
-    MPU_Write_Byte(MPU_PWR_MGMT1_REG,0X00);	//唤醒MPU6050
-    MPU_Set_Gyro_Fsr(3);					//陀螺仪传感器,±2000dps
-    MPU_Set_Accel_Fsr(0);					//加速度传感器,±2g
-    MPU_Set_Rate(50);						//设置采样率50Hz
-    MPU_Write_Byte(MPU_INT_EN_REG,0X00);	//关闭所有中断
-    MPU_Write_Byte(MPU_USER_CTRL_REG,0X00);	//I2C主模式关闭
-    MPU_Write_Byte(MPU_FIFO_EN_REG,0X00);	//关闭FIFO
-    MPU_Write_Byte(MPU_INTBP_CFG_REG,0X80);	//INT引脚低电平有效
-    res=MPU_Read_Byte(MPU_DEVICE_ID_REG);
-    if(res == MPU_ADDR || res == MPU_6500_WHO_AMI_I) //器件ID正确
+    MPU_Write_Byte(MPU_PWR_MGMT1_REG, 0X00); // 唤醒MPU6050
+    MPU_Set_Gyro_Fsr(3);                     // 陀螺仪传感器,±2000dps
+    MPU_Set_Accel_Fsr(0);                    // 加速度传感器,±2g
+    MPU_Set_Rate(50);                        // 设置采样率50Hz
+    MPU_Write_Byte(MPU_INT_EN_REG, 0X00);    // 关闭所有中断
+    MPU_Write_Byte(MPU_USER_CTRL_REG, 0X00); // I2C主模式关闭
+    MPU_Write_Byte(MPU_FIFO_EN_REG, 0X00);   // 关闭FIFO
+    MPU_Write_Byte(MPU_INTBP_CFG_REG, 0X80); // INT引脚低电平有效
+    res = MPU_Read_Byte(MPU_DEVICE_ID_REG);
+    if (res == MPU_ADDR || res == MPU_6500_WHO_AMI_I) // 器件ID正确
     {
-        MPU_Write_Byte(MPU_PWR_MGMT1_REG,0X01);	//设置CLKSEL,PLL X轴为参考
-        MPU_Write_Byte(MPU_PWR_MGMT2_REG,0X00);	//加速度与陀螺仪都工作
-        MPU_Set_Rate(50);						//设置采样率为50Hz
+        MPU_Write_Byte(MPU_PWR_MGMT1_REG, 0X01); // 设置CLKSEL,PLL X轴为参考
+        MPU_Write_Byte(MPU_PWR_MGMT2_REG, 0X00); // 加速度与陀螺仪都工作
+        MPU_Set_Rate(50);                        // 设置采样率为50Hz
         return 0;
     }
     else
@@ -58,69 +57,78 @@ uint8_t MPU_Init(void)
         return 1;
     }
 }
-//设置MPU6050陀螺仪传感器满量程范围
-//fsr:0,±250dps;1,±500dps;2,±1000dps;3,±2000dps
-//返回值:0,设置成功
-//    其他,设置失败
+// 设置MPU6050陀螺仪传感器满量程范围
+// fsr:0,±250dps;1,±500dps;2,±1000dps;3,±2000dps
+// 返回值:0,设置成功
+//     其他,设置失败
 uint8_t MPU_Set_Gyro_Fsr(uint8_t fsr)
 {
-    return MPU_Write_Byte(MPU_GYRO_CFG_REG,fsr<<3);//设置陀螺仪满量程范围
+    return MPU_Write_Byte(MPU_GYRO_CFG_REG, fsr << 3); // 设置陀螺仪满量程范围
 }
-//设置MPU6050加速度传感器满量程范围
-//fsr:0,±2g;1,±4g;2,±8g;3,±16g
-//返回值:0,设置成功
-//    其他,设置失败
+// 设置MPU6050加速度传感器满量程范围
+// fsr:0,±2g;1,±4g;2,±8g;3,±16g
+// 返回值:0,设置成功
+//     其他,设置失败
 uint8_t MPU_Set_Accel_Fsr(uint8_t fsr)
 {
-    return MPU_Write_Byte(MPU_ACCEL_CFG_REG,fsr<<3);//设置加速度传感器满量程范围
+    return MPU_Write_Byte(MPU_ACCEL_CFG_REG, fsr << 3); // 设置加速度传感器满量程范围
 }
-//设置MPU6050的数字低通滤波器
-//lpf:数字低通滤波频率(Hz)
-//返回值:0,设置成功
-//    其他,设置失败
+// 设置MPU6050的数字低通滤波器
+// lpf:数字低通滤波频率(Hz)
+// 返回值:0,设置成功
+//     其他,设置失败
 uint8_t MPU_Set_LPF(uint16_t lpf)
 {
-    uint8_t data=0;
-    if(lpf>=188)data=1;
-    else if(lpf>=98)data=2;
-    else if(lpf>=42)data=3;
-    else if(lpf>=20)data=4;
-    else if(lpf>=10)data=5;
-    else data=6;
-    return MPU_Write_Byte(MPU_CFG_REG,data);//设置数字低通滤波器
+    uint8_t data = 0;
+    if (lpf >= 188)
+        data = 1;
+    else if (lpf >= 98)
+        data = 2;
+    else if (lpf >= 42)
+        data = 3;
+    else if (lpf >= 20)
+        data = 4;
+    else if (lpf >= 10)
+        data = 5;
+    else
+        data = 6;
+    return MPU_Write_Byte(MPU_CFG_REG, data); // 设置数字低通滤波器
 }
-//设置MPU6050的采样率(假定Fs=1KHz)
-//rate:4~1000(Hz)
-//返回值:0,设置成功
-//    其他,设置失败
+// 设置MPU6050的采样率(假定Fs=1KHz)
+// rate:4~1000(Hz)
+// 返回值:0,设置成功
+//     其他,设置失败
 uint8_t MPU_Set_Rate(uint16_t rate)
 {
     uint8_t data;
-    if(rate>1000)rate=1000;
-    if(rate<4)rate=4;
-    data=1000/rate-1;
-    data=MPU_Write_Byte(MPU_SAMPLE_RATE_REG,data);	//设置数字低通滤波器
-    return MPU_Set_LPF(rate/2);	//自动设置LPF为采样率的一半
+    if (rate > 1000)
+        rate = 1000;
+    if (rate < 4)
+        rate = 4;
+    data = 1000 / rate - 1;
+    data = MPU_Write_Byte(MPU_SAMPLE_RATE_REG, data); // 设置数字低通滤波器
+    return MPU_Set_LPF(rate / 2);                     // 自动设置LPF为采样率的一半
 }
 
-//得到温度值
-//返回值:温度值(扩大了100倍)
+// 得到温度值
+// 返回值:温度值(扩大了100倍)
 float MPU_Get_Temperature(void)
 {
     uint8_t t_h, t_l;
     short raw;
     float temp;
-    MPU_Read_Len(MPU_ADDR,MPU_TEMP_OUTH_REG, 2, &t_h);
-    MPU_Read_Len(MPU_ADDR,MPU_TEMP_OUTL_REG, 2, &t_l);
+    MPU_Read_Len(MPU_ADDR, MPU_TEMP_OUTH_REG, 2, &t_h);
+    MPU_Read_Len(MPU_ADDR, MPU_TEMP_OUTL_REG, 2, &t_l);
     raw = ((uint16_t)t_h << 8) | t_l;
-    temp = (float) ((int16_t) raw / (float) 340.0 + (float) 36.53);;
+    temp = (float)((int16_t)raw / (float)340.0 + (float)36.53);
+    ;
     return temp;
 }
-//得到陀螺仪值(原始值)
-//gx,gy,gz:陀螺仪x,y,z轴的原始读数(带符号)
-//返回值:0,成功
-//    其他,错误代码
-uint8_t MPU_Get_Gyroscope(short *gx,short *gy,short *gz)
+// 得到陀螺仪值(原始值)
+// gx,gy,gz:陀螺仪x,y,z轴的原始读数(带符号)
+// 返回值:0,成功
+//     其他,错误代码
+uint8_t MPU_Get_Gyroscope(short *gx, short *gy, short *gz)
 {
     uint8_t x_h = 0, x_l = 0, y_h = 0, y_l = 0, z_h = 0, z_l = 0, res = 0;
     res |= MPU_Read_Len(MPU_ADDR, MPU_GYRO_XOUTH_REG, 1, &x_h);
@@ -145,21 +153,21 @@ uint8_t MPU_Get_Gyroscope(short *gx,short *gy,short *gz)
     uart_log_data('#');
     uart_log_enter_char();
 
-    if(res==0)
+    if (res == 0)
     {
-        *gx=((uint16_t)x_h << 8) | x_l;
-        *gy=((uint16_t)y_h << 8) | y_l;
-        *gz=((uint16_t)z_h << 8) | z_l;
+        *gx = ((uint16_t)x_h << 8) | x_l;
+        *gy = ((uint16_t)y_h << 8) | y_l;
+        *gz = ((uint16_t)z_h << 8) | z_l;
     }
-    return res;;
+    return res;
+    ;
 }
 
-
-//得到加速度值(原始值)
-//gx,gy,gz:陀螺仪x,y,z轴的原始读数(带符号)
-//返回值:0,成功
-//    其他,错误代码
-uint8_t MPU_Get_Accelerometer(short *ax,short *ay,short *az)
+// 得到加速度值(原始值)
+// gx,gy,gz:陀螺仪x,y,z轴的原始读数(带符号)
+// 返回值:0,成功
+//     其他,错误代码
+uint8_t MPU_Get_Accelerometer(short *ax, short *ay, short *az)
 {
     uint8_t x_h = 0, x_l = 0, y_h = 0, y_l = 0, z_h = 0, z_l = 0, res = 0;
     res |= MPU_Read_Len(MPU_ADDR, MPU_ACCEL_XOUTH_REG, 1, &x_h);
@@ -184,37 +192,38 @@ uint8_t MPU_Get_Accelerometer(short *ax,short *ay,short *az)
     uart_log_data('#');
     uart_log_enter_char();
 
-    if(res==0)
+    if (res == 0)
     {
-        *ax=((uint16_t)x_h << 8) | x_l;
-        *ay=((uint16_t)y_h << 8) | y_l;
-        *az=((uint16_t)z_h << 8) | z_l;
+        *ax = ((uint16_t)x_h << 8) | x_l;
+        *ay = ((uint16_t)y_h << 8) | y_l;
+        *az = ((uint16_t)z_h << 8) | z_l;
     }
-    return res;;
+    return res;
+    ;
 }
-//IIC连续写
-//addr:器件地址
-//reg:寄存器地址
-//len:写入长度
-//buf:数据区
-//返回值:0,正常
-//    其他,错误代码
-uint8_t MPU_Write_Len(uint8_t addr,uint8_t reg,uint8_t len,uint8_t *buf)
+// IIC连续写
+// addr:器件地址
+// reg:寄存器地址
+// len:写入长度
+// buf:数据区
+// 返回值:0,正常
+//     其他,错误代码
+uint8_t MPU_Write_Len(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf)
 {
     uint8_t i;
     MPU_IIC_Start();
-    MPU_IIC_Send_Byte((addr<<1)|0);//发送器件地址+写命令
-    if(MPU_IIC_Wait_Ack())	//等待应答
+    MPU_IIC_Send_Byte((addr << 1) | 0); // 发送器件地址+写命令
+    if (MPU_IIC_Wait_Ack())             // 等待应答
     {
         MPU_IIC_Stop();
         return 1;
     }
-    MPU_IIC_Send_Byte(reg);	//写寄存器地址
-    MPU_IIC_Wait_Ack();		//等待应答
-    for(i=0; i<len; i++)
+    MPU_IIC_Send_Byte(reg); // 写寄存器地址
+    MPU_IIC_Wait_Ack();     // 等待应答
+    for (i = 0; i < len; i++)
     {
-        MPU_IIC_Send_Byte(buf[i]);	//发送数据
-        if(MPU_IIC_Wait_Ack())		//等待ACK
+        MPU_IIC_Send_Byte(buf[i]); // 发送数据
+        if (MPU_IIC_Wait_Ack())    // 等待ACK
         {
             MPU_IIC_Stop();
             return 1;
@@ -223,55 +232,57 @@ uint8_t MPU_Write_Len(uint8_t addr,uint8_t reg,uint8_t len,uint8_t *buf)
     MPU_IIC_Stop();
     return 0;
 }
-//IIC连续读
-//addr:器件地址
-//reg:要读取的寄存器地址
-//len:要读取的长度
-//buf:读取到的数据存储区
-//返回值:0,正常
-//    其他,错误代码
-uint8_t MPU_Read_Len(uint8_t addr,uint8_t reg,uint8_t len,uint8_t *buf)
+// IIC连续读
+// addr:器件地址
+// reg:要读取的寄存器地址
+// len:要读取的长度
+// buf:读取到的数据存储区
+// 返回值:0,正常
+//     其他,错误代码
+uint8_t MPU_Read_Len(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf)
 {
     MPU_IIC_Start();
-    MPU_IIC_Send_Byte((addr<<1)|0);//发送器件地址+写命令
-    if(MPU_IIC_Wait_Ack())	//等待应答
+    MPU_IIC_Send_Byte((addr << 1) | 0); // 发送器件地址+写命令
+    if (MPU_IIC_Wait_Ack())             // 等待应答
     {
         MPU_IIC_Stop();
         return 1;
     }
-    MPU_IIC_Send_Byte(reg);	//写寄存器地址
-    MPU_IIC_Wait_Ack();		//等待应答
+    MPU_IIC_Send_Byte(reg); // 写寄存器地址
+    MPU_IIC_Wait_Ack();     // 等待应答
     MPU_IIC_Start();
-    MPU_IIC_Send_Byte((addr<<1)|1);//发送器件地址+读命令
-    MPU_IIC_Wait_Ack();		//等待应答
-    while(len)
+    MPU_IIC_Send_Byte((addr << 1) | 1); // 发送器件地址+读命令
+    MPU_IIC_Wait_Ack();                 // 等待应答
+    while (len)
     {
-        if(len==1)*buf=MPU_IIC_Read_Byte(0);//读数据,发送nACK
-        else *buf=MPU_IIC_Read_Byte(1);		//读数据,发送ACK
+        if (len == 1)
+            *buf = MPU_IIC_Read_Byte(0); // 读数据,发送nACK
+        else
+            *buf = MPU_IIC_Read_Byte(1); // 读数据,发送ACK
         len--;
         buf++;
     }
-    MPU_IIC_Stop();	//产生一个停止条件
+    MPU_IIC_Stop(); // 产生一个停止条件
     return 0;
 }
-//IIC写一个字节
-//reg:寄存器地址
-//data:数据
-//返回值:0,正常
-//    其他,错误代码
-uint8_t MPU_Write_Byte(uint8_t reg,uint8_t data)
+// IIC写一个字节
+// reg:寄存器地址
+// data:数据
+// 返回值:0,正常
+//     其他,错误代码
+uint8_t MPU_Write_Byte(uint8_t reg, uint8_t data)
 {
     MPU_IIC_Start();
-    MPU_IIC_Send_Byte((MPU_ADDR<<1)|0);//发送器件地址+写命令
-    if(MPU_IIC_Wait_Ack())	//等待应答
+    MPU_IIC_Send_Byte((MPU_ADDR << 1) | 0); // 发送器件地址+写命令
+    if (MPU_IIC_Wait_Ack())                 // 等待应答
     {
         MPU_IIC_Stop();
         return 1;
     }
-    MPU_IIC_Send_Byte(reg);	//写寄存器地址
-    MPU_IIC_Wait_Ack();		//等待应答
-    MPU_IIC_Send_Byte(data);//发送数据
-    if(MPU_IIC_Wait_Ack())	//等待ACK
+    MPU_IIC_Send_Byte(reg);  // 写寄存器地址
+    MPU_IIC_Wait_Ack();      // 等待应答
+    MPU_IIC_Send_Byte(data); // 发送数据
+    if (MPU_IIC_Wait_Ack())  // 等待ACK
     {
         MPU_IIC_Stop();
         return 1;
@@ -279,22 +290,22 @@ uint8_t MPU_Write_Byte(uint8_t reg,uint8_t data)
     MPU_IIC_Stop();
     return 0;
 }
-//IIC读一个字节
-//reg:寄存器地址
-//返回值:读到的数据
+// IIC读一个字节
+// reg:寄存器地址
+// 返回值:读到的数据
 uint8_t MPU_Read_Byte(uint8_t reg)
 {
     uint8_t res;
     MPU_IIC_Start();
-    MPU_IIC_Send_Byte((MPU_ADDR<<1)|0);//发送器件地址+写命令
-    MPU_IIC_Wait_Ack();		//等待应答
-    MPU_IIC_Send_Byte(reg);	//写寄存器地址
-    MPU_IIC_Wait_Ack();		//等待应答
+    MPU_IIC_Send_Byte((MPU_ADDR << 1) | 0); // 发送器件地址+写命令
+    MPU_IIC_Wait_Ack();                     // 等待应答
+    MPU_IIC_Send_Byte(reg);                 // 写寄存器地址
+    MPU_IIC_Wait_Ack();                     // 等待应答
     MPU_IIC_Start();
-    MPU_IIC_Send_Byte((MPU_ADDR<<1)|1);//发送器件地址+读命令
-    MPU_IIC_Wait_Ack();		//等待应答
-    res=MPU_IIC_Read_Byte(0);//读取数据,发送nACK
-    MPU_IIC_Stop();			//产生一个停止条件
+    MPU_IIC_Send_Byte((MPU_ADDR << 1) | 1); // 发送器件地址+读命令
+    MPU_IIC_Wait_Ack();                     // 等待应答
+    res = MPU_IIC_Read_Byte(0);             // 读取数据,发送nACK
+    MPU_IIC_Stop();                         // 产生一个停止条件
     return res;
 }
 
@@ -311,26 +322,45 @@ void Compute_Angle(struct gimbal_info *gimbal)
     // Kalman angle solve
     double dt = 1;
     double roll;
-    double roll_sqrt = sqrt(
-            gimbal->accl_x_raw * gimbal->accl_x_raw + gimbal->accl_z_raw * gimbal->accl_z_raw);
-    if (roll_sqrt != 0.0) {
+    double roll_sqrt = sqrt(gimbal->accl_x_raw * gimbal->accl_x_raw + gimbal->accl_z_raw * gimbal->accl_z_raw);
+    if (roll_sqrt != 0.0)
+    {
         roll = atan(gimbal->accl_y_raw / roll_sqrt) * RAD_TO_DEG;
-    } else {
+    }
+    else
+    {
         roll = 0.0;
     }
-    double pitch = atan2(-gimbal->accl_x_raw, gimbal->accl_z_raw) * RAD_TO_DEG;
-    if ((pitch < -90 && gimbal->pitch > 90) || (pitch > 90 && gimbal->pitch < -90)) {
-        KalmanY.angle = pitch;
-        gimbal->pitch = pitch;
-    } else {
-        gimbal->pitch = Kalman_getAngle(&KalmanY, pitch, gimbal->gyro_y, dt);
-    }
+
     if (fabs(gimbal->pitch) > 90)
         gimbal->gyro_x = -gimbal->gyro_x;
-    gimbal->roll = Kalman_getAngle(&KalmanX, roll, gimbal->gyro_y, dt);
+    gimbal->roll = Kalman_getAngle(&KalmanX, roll, gimbal->gyro_x, dt);
+
+    double pitch = atan2(-gimbal->accl_x_raw, gimbal->accl_z_raw) * RAD_TO_DEG;
+    if ((pitch < -90 && gimbal->pitch > 90) || (pitch > 90 && gimbal->pitch < -90))
+    {
+        KalmanY.angle = pitch;
+        gimbal->pitch = pitch;
+    }
+    else
+    {
+        gimbal->pitch = Kalman_getAngle(&KalmanY, pitch, gimbal->gyro_y, dt);
+    }
+
+    double yaw_estimate = atan2(gimbal->accl_y, gimbal->accl_x);
+    if ((yaw_estimate < -90 && gimbal->yaw > 90) || (yaw_estimate > 90 && gimbal->yaw < -90))
+    {
+        KalmanZ.angle = yaw_estimate;
+        gimbal->yaw = yaw_estimate;
+    }
+    else
+    {
+        gimbal->yaw = Kalman_getAngle(&KalmanZ, yaw_estimate, gimbal->gyro_z, dt);
+    }
 }
 
-double Kalman_getAngle(Kalman_t *Kalman, double newAngle, double newRate, double dt) {
+double Kalman_getAngle(Kalman_t *Kalman, double newAngle, double newRate, double dt)
+{
     double rate = newRate - Kalman->bias;
     Kalman->angle += dt * rate;
 
@@ -358,4 +388,3 @@ double Kalman_getAngle(Kalman_t *Kalman, double newAngle, double newRate, double
 
     return Kalman->angle;
 };
-
