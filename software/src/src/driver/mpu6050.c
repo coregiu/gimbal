@@ -7,8 +7,8 @@
 const double Accel_Z_corrector = 14418.0;
 
 double  Kp = 100.0;
-double Ki = 0.002f;
-double halfT = 0.001f;
+double  Ki = 0.003f;
+double  halfT = 0.003f;
 
 double q0 = 1, q1 = 0, q2 = 0, q3 = 0;
 double exInt = 0, eyInt = 0, ezInt = 0;
@@ -601,7 +601,9 @@ void Compute_Angle(struct gimbal_info *gimbal)
     gimbal->gyro_y = gy;
     gimbal->gyro_z = gz;
     gimbal->pitch  = asin(-2 * q1 * q3 + 2 * q0* q2)* 57.3;
-    gimbal->roll = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2* q2 + 1)* 57.3;
-    gimbal->yaw = atan2(2*(q1*q2 + q0*q3),q0*q0+q1*q1-q2*q2-q3*q3) * 57.3;
+    gimbal->roll   = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2* q2 + 1)* 57.3;
+    gimbal->yaw    = atan2(2*(q1*q2 + q0*q3), q0*q0+q1*q1-q2*q2-q3*q3) * 57.3;
+    // add by coregiu adapte angle.
+    gimbal->yaw    *= 3;
 }
 
