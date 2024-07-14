@@ -14,12 +14,12 @@ const short ARR = 199;
 const short PSC = 7199;
 
 const int SERVO_DOWN_RIGHT_POSITION  = 0;
-const int SERVO_DOWN_MIDDLE_POSITION = 90;
+const int SERVO_DOWN_MIDDLE_POSITION = 110;
 const int SERVO_DOWN_LEFT_POSITION   = 176;
 
-const int SERVO_TOP_BACK_POSITION    = 0;
+const int SERVO_TOP_BACK_POSITION    = 30;
 const int SERVO_TOP_MIDDLE_POSITION  = 90;
-const int SERVO_TOP_FRONT_POSITION   = 176;
+const int SERVO_TOP_FRONT_POSITION   = 160;
 
 void tim3_gpio_config(void)
 {
@@ -55,7 +55,6 @@ void tim3_mode_config(void)
     TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
 
     /*--------------------输出比较结构体初始化-------------------*/
-
     TIM_OCInitTypeDef TIM_OCInitStructure;
     // 配置为PWM模式1
     TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
@@ -81,8 +80,8 @@ void init_roboot_state(void)
     tim3_gpio_config();
     tim3_mode_config();
     // 设置舵机初始状态在90度
-    TIM_SetCompare1(TIM3, 15);
-    TIM_SetCompare2(TIM3, 15);
+    change_angle(CHANNEL_BOTTOM, SERVO_DOWN_MIDDLE_POSITION);
+    change_angle(CHANNEL_UP, SERVO_TOP_MIDDLE_POSITION);
 }
 
 void update_roboot_state(struct command_context *command_context)

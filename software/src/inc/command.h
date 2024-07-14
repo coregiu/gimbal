@@ -24,7 +24,7 @@
 // define the single light
 #define LED PCout(13)	//PC13 0-light up; 1-turn off.
 
-#define COMMANDS_LENGTH 21
+#define COMMANDS_LENGTH 22
 
 #define DEFAULT_BOUND_RATE 9600
 

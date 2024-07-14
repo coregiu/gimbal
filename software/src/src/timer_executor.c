@@ -1,6 +1,7 @@
 #include <timer_executor.h>
 #include "mpu6050.h"
 #include "led_display.h"
+#include "controller.h"
 
 struct gimbal_info gimbal_info = {0, 0, 0, 0.0, 0.0, 0.0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 struct gimbal_info pre_gimbal_info = {0, 0, 0, 0.0, 0.0, 0.0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
@@ -161,7 +162,7 @@ void TIM2_IRQHandler(void)
         }
         set_gimbal_info(&pre_gimbal_info, &gimbal_info);
 
-        execute_commands(COMMAND_ADAPTE_SERVO, COMMAND_TYPE_AUTO);
+        execute_commands("K", COMMAND_TYPE_AUTO);
         show_gimbal_info(&gimbal_info);
     }
 }
