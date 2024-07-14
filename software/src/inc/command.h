@@ -34,9 +34,6 @@
 // 命令处理队列，用于任务间通信
 extern QueueHandle_t command_queue;
 
-// 系统启动时长
-extern uint32_t gimbale_start_times;
-
 enum delay_type
 {
     DELAY_BEFOR_EXE = '0',

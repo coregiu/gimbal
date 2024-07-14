@@ -170,7 +170,6 @@ uint8_t MPU_Get_Gyroscope(short *gx, short *gy, short *gz)
         *gz = ((uint16_t)z_h << 8) | z_l;
     }
     return res;
-    ;
 }
 
 // 得到加速度值(原始值)
@@ -209,7 +208,6 @@ uint8_t MPU_Get_Accelerometer(short *ax, short *ay, short *az)
         *az = ((uint16_t)z_h << 8) | z_l;
     }
     return res;
-    ;
 }
 // IIC连续写
 // addr:器件地址

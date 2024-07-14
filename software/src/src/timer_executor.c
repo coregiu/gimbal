@@ -6,7 +6,6 @@
 struct gimbal_info gimbal_info = {0, 0, 0, 0.0, 0.0, 0.0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 struct gimbal_info pre_gimbal_info = {0, 0, 0, 0.0, 0.0, 0.0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 int32_t gimbale_data_buffer[6] = {0};
-uint32_t gimbale_start_times = 0;
 
 void create_timer_executor()
 {
@@ -142,7 +141,6 @@ void TIM2_IRQHandler(void)
         // 清除更新中断标志位
         TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
         LED = ~LED;
-        gimbale_start_times++;
 
 	    uchar result = MPU_Get_Gyroscope(&gimbal_info.gyro_x_raw, &gimbal_info.gyro_y_raw, &gimbal_info.gyro_z_raw);
         result |= MPU_Get_Accelerometer(&gimbal_info.accl_x_raw, &gimbal_info.accl_y_raw, &gimbal_info.accl_z_raw);
