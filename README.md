@@ -27,9 +27,6 @@ Gimbal是通过MPU-6050控制的智能稳定照明灯。
 
 ## 成品效果
 
-##### 视频
-[https://www.bilibili.com/video/BV1Db4y1V7Ny](https://www.bilibili.com/video/BV1Db4y1V7Ny)
-
 ![](images/gimbal.png)
 
 
