@@ -1,6 +1,5 @@
 #include <timer_executor.h>
 #include "mpu6050.h"
-#include "inv_mpu.h"
 #include "led_display.h"
 
 struct gimbal_info gimbal_info = {0, 0, 0, 0.0, 0.0, 0.0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
