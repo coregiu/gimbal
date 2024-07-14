@@ -1,6 +1,7 @@
 #ifndef __MPU6050_H
 #define __MPU6050_H
 #include "iic.h"
+#include <math.h>
 
 
 #define MPU_IIC_Init			IIC_Init

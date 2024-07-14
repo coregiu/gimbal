@@ -309,8 +309,7 @@ void Compute_Angle(struct gimbal_info *gimbal)
     gimbal->gyro_z = gimbal->gyro_z_raw / 131.0;
 
     // Kalman angle solve
-    double dt = (double) (HAL_GetTick() - timer) / 1000;
-    timer = HAL_GetTick();
+    double dt = 1;
     double roll;
     double roll_sqrt = sqrt(
             gimbal->accl_x_raw * gimbal->accl_x_raw + gimbal->accl_z_raw * gimbal->accl_z_raw);
