@@ -83,15 +83,15 @@ void init_timer_module()
 
 uchar compare_gimbal_info(struct gimbal_info *pre_gimbal_info, struct gimbal_info *gimbal_info)
 {
-    if (pre_gimbal_info->roll != gimbal_info->roll)
+    if ((int)pre_gimbal_info->roll != (int)gimbal_info->roll)
     {
         return 1;
     }
-    if (pre_gimbal_info->pitch != gimbal_info->pitch)
+    if ((int)pre_gimbal_info->pitch != (int)gimbal_info->pitch)
     {
         return 1;
     }
-    if (pre_gimbal_info->yaw != gimbal_info->yaw)
+    if ((int)pre_gimbal_info->yaw != (int)gimbal_info->yaw)
     {
         return 1;
     }
@@ -157,7 +157,7 @@ void TIM2_IRQHandler(void)
     if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET) {
         // 清除更新中断标志位
         TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
-        LED = ~LED;
+        // LED = ~LED;
 
 	    uchar result = MPU_Get_Gyroscope(&gimbal_info.gyro_x_raw, &gimbal_info.gyro_y_raw, &gimbal_info.gyro_z_raw);
         result |= MPU_Get_Accelerometer(&gimbal_info.accl_x_raw, &gimbal_info.accl_y_raw, &gimbal_info.accl_z_raw);
