@@ -146,12 +146,13 @@ void TIM2_IRQHandler(void)
         result |= MPU_Get_Accelerometer(&gimbal_info.accl_x_raw, &gimbal_info.accl_y_raw, &gimbal_info.accl_z_raw);
         gimbal_info.temperature = MPU_Get_Temperature();
 
-        log_gimbal_info(&gimbal_info);
+        // log_gimbal_info(&gimbal_info);
         if (result != 0)
         {
             uart_log_string_data("mpu read error");
             return;
         }
+
         Compute_Angle(&gimbal_info);
         if (compare_gimbal_info(&pre_gimbal_info, &gimbal_info) == 0)
         {

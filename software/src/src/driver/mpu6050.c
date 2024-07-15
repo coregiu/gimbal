@@ -148,20 +148,20 @@ uint8_t MPU_Get_Gyroscope(short *gx, short *gy, short *gz)
     res |= MPU_Read_Len(MPU_ADDR, MPU_GYRO_ZOUTH_REG, 1, &z_h);
     res |= MPU_Read_Len(MPU_ADDR, MPU_GYRO_ZOUTL_REG, 1, &z_l);
 
-    uart_log_data('$');
-    uart_log_number(x_h);
-    uart_log_data('|');
-    uart_log_number(x_l);
-    uart_log_data('|');
-    uart_log_number(y_h);
-    uart_log_data('|');
-    uart_log_number(y_l);
-    uart_log_data('|');
-    uart_log_number(z_h);
-    uart_log_data('|');
-    uart_log_number(z_l);
-    uart_log_data('#');
-    uart_log_enter_char();
+    // uart_log_data('$');
+    // uart_log_number(x_h);
+    // uart_log_data('|');
+    // uart_log_number(x_l);
+    // uart_log_data('|');
+    // uart_log_number(y_h);
+    // uart_log_data('|');
+    // uart_log_number(y_l);
+    // uart_log_data('|');
+    // uart_log_number(z_h);
+    // uart_log_data('|');
+    // uart_log_number(z_l);
+    // uart_log_data('#');
+    // uart_log_enter_char();
 
     if (res == 0)
     {
@@ -186,20 +186,20 @@ uint8_t MPU_Get_Accelerometer(short *ax, short *ay, short *az)
     res |= MPU_Read_Len(MPU_ADDR, MPU_ACCEL_ZOUTH_REG, 1, &z_h);
     res |= MPU_Read_Len(MPU_ADDR, MPU_ACCEL_ZOUTL_REG, 1, &z_l);
 
-    uart_log_data('@');
-    uart_log_number(x_h);
-    uart_log_data('|');
-    uart_log_number(x_l);
-    uart_log_data('|');
-    uart_log_number(y_h);
-    uart_log_data('|');
-    uart_log_number(y_l);
-    uart_log_data('|');
-    uart_log_number(z_h);
-    uart_log_data('|');
-    uart_log_number(z_l);
-    uart_log_data('#');
-    uart_log_enter_char();
+    // uart_log_data('@');
+    // uart_log_number(x_h);
+    // uart_log_data('|');
+    // uart_log_number(x_l);
+    // uart_log_data('|');
+    // uart_log_number(y_h);
+    // uart_log_data('|');
+    // uart_log_number(y_l);
+    // uart_log_data('|');
+    // uart_log_number(z_h);
+    // uart_log_data('|');
+    // uart_log_number(z_l);
+    // uart_log_data('#');
+    // uart_log_enter_char();
 
     if (res == 0)
     {
