@@ -83,15 +83,15 @@ void init_timer_module()
 
 uchar compare_gimbal_info(struct gimbal_info *pre_gimbal_info, struct gimbal_info *gimbal_info)
 {
-    if (pre_gimbal_info->gyro_x != gimbal_info->gyro_x)
+    if (pre_gimbal_info->roll != gimbal_info->roll)
     {
         return 1;
     }
-    if (pre_gimbal_info->gyro_y != gimbal_info->gyro_y)
+    if (pre_gimbal_info->pitch != gimbal_info->pitch)
     {
         return 1;
     }
-    if (pre_gimbal_info->gyro_z != gimbal_info->gyro_z)
+    if (pre_gimbal_info->yaw != gimbal_info->yaw)
     {
         return 1;
     }
@@ -100,9 +100,26 @@ uchar compare_gimbal_info(struct gimbal_info *pre_gimbal_info, struct gimbal_inf
 
 void set_gimbal_info(struct gimbal_info *pre_gimbal_info, struct gimbal_info *gimbal_info)
 {
+    pre_gimbal_info->gyro_x_raw = gimbal_info->gyro_x_raw;
+    pre_gimbal_info->gyro_y_raw = gimbal_info->gyro_y_raw;
+    pre_gimbal_info->gyro_z_raw = gimbal_info->gyro_z_raw;
+
+    pre_gimbal_info->accl_x_raw = gimbal_info->accl_x_raw;
+    pre_gimbal_info->accl_y_raw = gimbal_info->accl_y_raw;
+    pre_gimbal_info->accl_z_raw = gimbal_info->accl_z_raw;
+
     pre_gimbal_info->gyro_x = gimbal_info->gyro_x;
     pre_gimbal_info->gyro_y = gimbal_info->gyro_y;
     pre_gimbal_info->gyro_z = gimbal_info->gyro_z;
+
+    pre_gimbal_info->accl_x = gimbal_info->accl_x;
+    pre_gimbal_info->accl_y = gimbal_info->accl_y;
+    pre_gimbal_info->accl_z = gimbal_info->accl_z;
+
+    pre_gimbal_info->roll = gimbal_info->roll;
+    pre_gimbal_info->pitch = gimbal_info->pitch;
+    pre_gimbal_info->yaw = gimbal_info->yaw;
+    pre_gimbal_info->temperature = gimbal_info->temperature;
 }
 
 void log_gimbal_info(struct gimbal_info *gimbal_info)
