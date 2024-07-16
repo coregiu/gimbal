@@ -375,6 +375,11 @@ double getGyrodata(short raw_data)
     return 0;
 }
 
+/**
+ *yaw = atan2(2 * (q1 * q2 + q0 * q3), q0 * q0 + q1 * q1 - q2 * q2 - q3 * q3);
+ *pitch = asin(-2 * q1 * q3 + 2 * q0 * q2);
+ *roll = atan2(2 * (q2 * q3 + q0 * q1), q0 * q0 - q1 * q1 - q2 * q2 + q3 * q3);
+ */
 void Compute_Angle(struct gimbal_info *gimbal)
 {
     double gx = getGyrodata(gimbal->gyro_x_raw) - gyro_x_offset;
@@ -430,6 +435,7 @@ void Compute_Angle(struct gimbal_info *gimbal)
     gimbal->pitch  = asin(-2 * q1 * q3 + 2 * q0* q2)* 57.3;
     gimbal->roll   = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2* q2 + 1)* 57.3;
     gimbal->yaw    = atan2(2*(q1*q2 + q0*q3), q0*q0+q1*q1-q2*q2-q3*q3) * 57.3;
+
     // add by coregiu adapte angle.
     gimbal->yaw    *= 3;
 }
