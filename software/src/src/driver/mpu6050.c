@@ -397,7 +397,7 @@ double Kalman_getAngle(Kalman_t *Kalman, double newAngle, double newRate, double
     return Kalman->angle;
 }
 
-double getAcceXdata(short raw_data)
+double getAccedata(short raw_data)
 {
     double temp;
     switch (AccR)
@@ -422,107 +422,7 @@ double getAcceXdata(short raw_data)
     return 0;
 }
 
-double getAcceYdata(short raw_data)
-{
-    double temp;
-    switch (AccR)
-    {
-        case ACC_2G:
-            temp = (double)raw_data / 32767 * 9.8;
-            return temp;
-
-        case ACC_4G:
-            temp = (double)raw_data / 16384 * 9.8;
-            return temp;
-
-        case ACC_8G:
-            temp = (double)raw_data / 8192 * 9.8;
-            return temp;
-
-        case ACC_16G:
-            temp = (double)raw_data / 4096 * 9.8;
-            return temp;
-    }
-
-    return 0;
-}
-
-double getAcceZdata(short raw_data)
-{
-    double temp;
-    switch (AccR)
-    {
-        case ACC_2G:
-            temp = (double)raw_data / 32767 * 9.8;
-            return temp;
-
-        case ACC_4G:
-            temp = (double)raw_data / 16384 * 9.8;
-            return temp;
-
-        case ACC_8G:
-            temp = (double)raw_data / 8192 * 9.8;
-            return temp;
-
-        case ACC_16G:
-            temp = (double)raw_data / 4096 * 9.8;
-            return temp;
-    }
-
-    return 0;
-}
-
-double getGyroXdata(short raw_data)
-{
-    double temp;
-    switch (GyrR)
-    {
-        case BPS_250:
-            temp =  (double)raw_data / 262;
-            return temp;
-
-        case BPS_500:
-            temp =  (double)raw_data / 161;
-            return temp;
-
-        case BPS_1000:
-            temp =  (double)raw_data / 65.5;
-            return temp;
-
-        case BPS_2000:
-            temp =  (double)raw_data / 32.75;
-            return temp;
-    }
-
-    return 0;
-}
-
-double getGyroYdata(short raw_data)
-{
-    double temp;
-    switch (GyrR)
-    {
-        case BPS_250:
-            temp =  (double)raw_data / 262;
-            return temp;
-
-        case BPS_500:
-            temp =  (double)raw_data / 161;
-            return temp;
-
-        case BPS_1000:
-            temp =  (double)raw_data / 65.5;
-            return temp;
-
-        case BPS_2000:
-            temp =  (double)raw_data / 32.75;
-            return temp;
-    }
-
-    return 0;
-}
-
-double getGyroZdata(short raw_data)
+double getGyrodata(short raw_data)
 {
     double temp;
     switch (GyrR)
@@ -549,12 +449,12 @@ double getGyroZdata(short raw_data)
 
 void Compute_Angle(struct gimbal_info *gimbal)
 {
-    double gx = getGyroXdata(gimbal->gyro_x_raw);
-    double gy = getGyroYdata(gimbal->gyro_y_raw);
-    double gz = getGyroZdata(gimbal->gyro_z_raw);
-    double ax = getAcceXdata(gimbal->accl_x_raw);
-    double ay = getAcceYdata(gimbal->accl_y_raw);
-    double az = getAcceZdata(gimbal->accl_z_raw);
+    double gx = getGyrodata(gimbal->gyro_x_raw);
+    double gy = getGyrodata(gimbal->gyro_y_raw);
+    double gz = getGyrodata(gimbal->gyro_z_raw);
+    double ax = getAccedata(gimbal->accl_x_raw);
+    double ay = getAccedata(gimbal->accl_y_raw);
+    double az = getAccedata(gimbal->accl_z_raw);
 
     double  norm;
     double  vx, vy, vz;
