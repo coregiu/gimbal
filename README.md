@@ -31,3 +31,10 @@ Gimbal是通过MPU-6050控制的智能稳定照明灯。
 
 [视频:https://www.bilibili.com/video/BV1kMbXeJErE/](https://www.bilibili.com/video/BV1kMbXeJErE/)
 
+# 参考致谢
+[https://github.com/aixin698/stm32f1_mpu6050](https://github.com/aixin698/stm32f1_mpu6050 )
+[https://gitee.com/NackBT/mpu6050](https://gitee.com/NackBT/mpu6050)
+[https://www.cnblogs.com/songmingze/p/17609666.html](https://www.cnblogs.com/songmingze/p/17609666.html)
+[https://shequ.stmicroelectronics.cn/thread-639313-1-1.html](https://shequ.stmicroelectronics.cn/thread-639313-1-1.html)
+[https://github.com/rpicopter/MotionSensorExample/tree/master](https://github.com/rpicopter/MotionSensorExample/tree/master)
+[https://cloud.tencent.com/developer/article/1673718](https://cloud.tencent.com/developer/article/1673718)
