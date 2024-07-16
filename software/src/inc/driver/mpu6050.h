@@ -164,8 +164,9 @@ float MPU_Get_Temperature(void);
 uint8_t MPU_Get_Gyroscope(short *gx, short *gy, short *gz);
 uint8_t MPU_Get_Accelerometer(short *ax, short *ay, short *az);
 
+void Correcting_Dviations();
+double getAccedata(short raw_data);
+double getGyrodata(short raw_data);
 void Compute_Angle(struct gimbal_info *gimbal);
-
-double Kalman_getAngle(Kalman_t *Kalman, double newAngle, double newRate, double dt);
 
 #endif

@@ -4,8 +4,6 @@
 
 #define RAD_TO_DEG 57.295779513082320876798154814105
 
-const double Accel_Z_corrector = 14418.0;
-
 double  Kp = 100.0;
 double  Ki = 0.003f;
 double  halfT = 0.003f;
@@ -16,22 +14,10 @@ double exInt = 0, eyInt = 0, ezInt = 0;
 enum ACCE_RANGE AccR = ACC_2G;
 enum GYRO_RANGE GyrR = BPS_2000;
 
-Kalman_t KalmanX = {
-    .Q_angle = 0.001f,
-    .Q_bias = 0.003f,
-    .R_measure = 0.03f};
-
-Kalman_t KalmanY = {
-    .Q_angle = 0.001f,
-    .Q_bias = 0.003f,
-    .R_measure = 0.03f,
-};
-
-Kalman_t KalmanZ = {
-    .Q_angle = 0.001f,
-    .Q_bias = 0.003f,
-    .R_measure = 0.03f,
-};
+double gyro_x_offset = 0.0;
+double gyro_y_offset = 0.0;
+double gyro_z_offset = 0.0;
+int num_samples = 100; // 样本数量，可根据实际情况调整
 
 // 初始化MPU6050
 // 返回值:0,成功
@@ -317,84 +303,26 @@ uint8_t MPU_Read_Byte(uint8_t reg)
     return res;
 }
 
-// void Compute_Angle(struct gimbal_info *gimbal)
-// {
-//     gimbal->accl_x = gimbal->accl_x_raw / 16384.0;
-//     gimbal->accl_y = gimbal->accl_y_raw / 16384.0;
-//     gimbal->accl_z = gimbal->accl_z_raw / Accel_Z_corrector;
-
-//     gimbal->gyro_x = gimbal->gyro_x_raw / 131.0;
-//     gimbal->gyro_y = gimbal->gyro_y_raw / 131.0;
-//     gimbal->gyro_z = gimbal->gyro_z_raw / 131.0;
-
-//     // Kalman angle solve
-//     double dt = 1;
-//     double roll;
-//     double roll_sqrt = sqrt(gimbal->accl_x_raw * gimbal->accl_x_raw + gimbal->accl_z_raw * gimbal->accl_z_raw);
-//     if (roll_sqrt != 0.0)
-//     {
-//         roll = atan(gimbal->accl_y_raw / roll_sqrt) * RAD_TO_DEG;
-//     }
-//     else
-//     {
-//         roll = 0.0;
-//     }
-
-//     if (fabs(gimbal->pitch) > 90)
-//         gimbal->gyro_x = -gimbal->gyro_x;
-//     gimbal->roll = Kalman_getAngle(&KalmanX, roll, gimbal->gyro_x, dt);
-
-//     double pitch = atan2(-gimbal->accl_x_raw, gimbal->accl_z_raw) * RAD_TO_DEG;
-//     if ((pitch < -90 && gimbal->pitch > 90) || (pitch > 90 && gimbal->pitch < -90))
-//     {
-//         KalmanY.angle = pitch;
-//         gimbal->pitch = pitch;
-//     }
-//     else
-//     {
-//         gimbal->pitch = Kalman_getAngle(&KalmanY, pitch, gimbal->gyro_y, dt);
-//     }
-
-//     double yaw_estimate = atan2(gimbal->accl_y, gimbal->accl_x);
-//     if ((yaw_estimate < -90 && gimbal->yaw > 90) || (yaw_estimate > 90 && gimbal->yaw < -90))
-//     {
-//         KalmanZ.angle = yaw_estimate;
-//         gimbal->yaw = yaw_estimate;
-//     }
-//     else
-//     {
-//         gimbal->yaw = Kalman_getAngle(&KalmanZ, yaw_estimate, gimbal->gyro_z, dt);
-//     }
-// }
-
-double Kalman_getAngle(Kalman_t *Kalman, double newAngle, double newRate, double dt)
+void Correcting_Dviations()
 {
-    double rate = newRate - Kalman->bias;
-    Kalman->angle += dt * rate;
+    short gx, gy, gz;
+    for(int i=0; i<num_samples; i++)
+    {
+        uint8_t result = MPU_Get_Gyroscope(&gx, &gy, &gz);
+        if (result != 0)
+        {
+            continue;
+        }
+        gyro_x_offset += getGyrodata(gx);
+        gyro_y_offset += getGyrodata(gy);
+        gyro_z_offset += getGyrodata(gz);
+        delay_ms(10); // 等待10毫秒，以收集独立的样本
+    }
 
-    Kalman->P[0][0] += dt * (dt * Kalman->P[1][1] - Kalman->P[0][1] - Kalman->P[1][0] + Kalman->Q_angle);
-    Kalman->P[0][1] -= dt * Kalman->P[1][1];
-    Kalman->P[1][0] -= dt * Kalman->P[1][1];
-    Kalman->P[1][1] += Kalman->Q_bias * dt;
-
-    double S = Kalman->P[0][0] + Kalman->R_measure;
-    double K[2];
-    K[0] = Kalman->P[0][0] / S;
-    K[1] = Kalman->P[1][0] / S;
-
-    double y = newAngle - Kalman->angle;
-    Kalman->angle += K[0] * y;
-    Kalman->bias += K[1] * y;
-
-    double P00_temp = Kalman->P[0][0];
-    double P01_temp = Kalman->P[0][1];
-
-    Kalman->P[0][0] -= K[0] * P00_temp;
-    Kalman->P[0][1] -= K[0] * P01_temp;
-    Kalman->P[1][0] -= K[1] * P00_temp;
-    Kalman->P[1][1] -= K[1] * P01_temp;
-
-    return Kalman->angle;
+    // 计算平均偏移
+    gyro_x_offset /= num_samples;
+    gyro_y_offset /= num_samples;
+    gyro_z_offset /= num_samples;
 }
 
 double getAccedata(short raw_data)
@@ -449,9 +377,10 @@ double getGyrodata(short raw_data)
 
 void Compute_Angle(struct gimbal_info *gimbal)
 {
-    double gx = getGyrodata(gimbal->gyro_x_raw);
-    double gy = getGyrodata(gimbal->gyro_y_raw);
-    double gz = getGyrodata(gimbal->gyro_z_raw);
+    double gx = getGyrodata(gimbal->gyro_x_raw) - gyro_x_offset;
+    double gy = getGyrodata(gimbal->gyro_y_raw) - gyro_x_offset;
+    double gz = getGyrodata(gimbal->gyro_z_raw) - gyro_x_offset;
+
     double ax = getAccedata(gimbal->accl_x_raw);
     double ay = getAccedata(gimbal->accl_y_raw);
     double az = getAccedata(gimbal->accl_z_raw);
