@@ -138,11 +138,11 @@ void log_gimbal_info(struct gimbal_info *gimbal_info)
     uart_log_string_no_enter("|A_Z:");
     uart_log_number(gimbal_info->accl_z_raw);
     uart_log_string_no_enter("|roll:");
-    uart_log_number(gimbal_info->roll);
+    uart_log_number(gimbal_info->roll * 100);
     uart_log_string_no_enter("|pitch:");
-    uart_log_number(gimbal_info->pitch);
+    uart_log_number(gimbal_info->pitch * 100);
     uart_log_string_no_enter("|yaw:");
-    uart_log_number(gimbal_info->yaw);
+    uart_log_number(gimbal_info->yaw * 100);
     uart_log_string_no_enter("|Temp:");
     uart_log_number(gimbal_info->temperature);
     uart_log_enter_char();
@@ -164,7 +164,7 @@ void TIM2_IRQHandler(void)
         result |= MPU_Get_Accelerometer(&gimbal_info.accl_x_raw, &gimbal_info.accl_y_raw, &gimbal_info.accl_z_raw);
         gimbal_info.temperature = MPU_Get_Temperature();
 
-        // log_gimbal_info(&gimbal_info);
+        log_gimbal_info(&gimbal_info);
         if (result != 0)
         {
             uart_log_string_data("mpu read error");
