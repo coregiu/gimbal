@@ -18,6 +18,7 @@ double gyro_x_offset = 0.0;
 double gyro_y_offset = 0.0;
 double gyro_z_offset = 0.0;
 int num_samples = 100; // 样本数量，可根据实际情况调整
+int loop = 0;
 
 // 初始化MPU6050
 // 返回值:0,成功
@@ -383,8 +384,8 @@ double getGyrodata(short raw_data)
 void Compute_Angle(struct gimbal_info *gimbal)
 {
     double gx = getGyrodata(gimbal->gyro_x_raw) - gyro_x_offset;
-    double gy = getGyrodata(gimbal->gyro_y_raw) - gyro_x_offset;
-    double gz = getGyrodata(gimbal->gyro_z_raw) - gyro_x_offset;
+    double gy = getGyrodata(gimbal->gyro_y_raw) - gyro_y_offset;
+    double gz = getGyrodata(gimbal->gyro_z_raw) - gyro_z_offset;
 
     double ax = getAccedata(gimbal->accl_x_raw);
     double ay = getAccedata(gimbal->accl_y_raw);
@@ -433,6 +434,17 @@ void Compute_Angle(struct gimbal_info *gimbal)
     gimbal->gyro_y = gy;
     gimbal->gyro_z = gz;
 
+    uart_log_data('$');
+    uart_log_number(q0 * 10000);
+    uart_log_data('|');
+    uart_log_number(q1 * 10000);
+    uart_log_data('|');
+    uart_log_number(q2 * 10000);
+    uart_log_data('|');
+    uart_log_number(q3 * 10000);
+    uart_log_data('|');
+    uart_log_enter_char();
+
     // gimbal->pitch  = asin(-2 * q1 * q3 + 2 * q0* q2)* 57.3;
     // gimbal->roll   = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2* q2 + 1)* 57.3;
     // gimbal->yaw    = atan2(2*(q1*q2 + q0*q3), q0*q0+q1*q1-q2*q2-q3*q3) * 57.3;
@@ -443,6 +455,5 @@ void Compute_Angle(struct gimbal_info *gimbal)
 
     // add by coregiu adapte angle.
     gimbal->yaw    *= 3;
-    gimbal->yaw    -= 10;
 }
 
