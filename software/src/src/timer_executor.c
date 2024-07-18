@@ -79,7 +79,6 @@ void init_timer_module()
         uart_log_number(result);
         uart_log_enter_char();
     }
-    Correcting_Dviations();
 }
 
 uchar compare_gimbal_info(struct gimbal_info *pre_gimbal_info, struct gimbal_info *gimbal_info)

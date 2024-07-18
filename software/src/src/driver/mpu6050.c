@@ -4,21 +4,14 @@
 
 #define RAD_TO_DEG 57.295779513082320876798154814105
 
-double  Kp = 100.0;
-double  Ki = 0.003f;
-double  halfT = 0.003f;
+struct kalman_t k_xy_t = {100.0, 0.003f, 0.003f};
+struct kalman_t k_z_t = {100.0, 0.003f, 0.003f};
 
 double q0 = 1, q1 = 0, q2 = 0, q3 = 0;
 double exInt = 0, eyInt = 0, ezInt = 0;
 
 enum ACCE_RANGE AccR = ACC_2G;
 enum GYRO_RANGE GyrR = BPS_2000;
-
-double gyro_x_offset = 0.0;
-double gyro_y_offset = 0.0;
-double gyro_z_offset = 0.0;
-int num_samples = 100; // 样本数量，可根据实际情况调整
-int loop = 0;
 
 // 初始化MPU6050
 // 返回值:0,成功
@@ -304,28 +297,6 @@ uint8_t MPU_Read_Byte(uint8_t reg)
     return res;
 }
 
-void Correcting_Dviations()
-{
-    short gx, gy, gz;
-    for(int i=0; i<num_samples; i++)
-    {
-        uint8_t result = MPU_Get_Gyroscope(&gx, &gy, &gz);
-        if (result != 0)
-        {
-            continue;
-        }
-        gyro_x_offset += getGyrodata(gx);
-        gyro_y_offset += getGyrodata(gy);
-        gyro_z_offset += getGyrodata(gz);
-        delay_ms(10); // 等待10毫秒，以收集独立的样本
-    }
-
-    // 计算平均偏移
-    gyro_x_offset /= num_samples;
-    gyro_y_offset /= num_samples;
-    gyro_z_offset /= num_samples;
-}
-
 double getAccedata(short raw_data)
 {
     double temp;
@@ -383,9 +354,9 @@ double getGyrodata(short raw_data)
  */
 void Compute_Angle(struct gimbal_info *gimbal)
 {
-    double gx = getGyrodata(gimbal->gyro_x_raw) - gyro_x_offset;
-    double gy = getGyrodata(gimbal->gyro_y_raw) - gyro_y_offset;
-    double gz = getGyrodata(gimbal->gyro_z_raw) - gyro_z_offset;
+    double gx = getGyrodata(gimbal->gyro_x_raw);
+    double gy = getGyrodata(gimbal->gyro_y_raw);
+    double gz = getGyrodata(gimbal->gyro_z_raw);
 
     double ax = getAccedata(gimbal->accl_x_raw);
     double ay = getAccedata(gimbal->accl_y_raw);
@@ -408,18 +379,18 @@ void Compute_Angle(struct gimbal_info *gimbal)
     ey = (az*vx - ax*vz);
     ez = (ax*vy - ay*vx);
 
-    exInt = exInt + ex*Ki;
-    eyInt = eyInt + ey*Ki;
-    ezInt = ezInt + ez*Ki;
+    exInt = exInt + ex * k_xy_t.Ki;
+    eyInt = eyInt + ey * k_xy_t.Ki;
+    ezInt = ezInt + ez * k_z_t.Ki;
 
-    gx = gx + Kp*ex + exInt;
-    gy = gy + Kp*ey + eyInt;
-    gz = gz + Kp*ez + ezInt;
+    gx = gx + k_xy_t.Kp * ex + exInt;
+    gy = gy + k_xy_t.Kp * ey + eyInt;
+    gz = gz + k_z_t.Kp * ez + ezInt;
 
-    q0 = q0 + (-q1*gx - q2*gy - q3*gz)*halfT;
-    q1 = q1 + (q0*gx + q2*gz - q3*gy)*halfT;
-    q2 = q2 + (q0*gy - q1*gz + q3*gx)*halfT;
-    q3 = q3 + (q0*gz + q1*gy - q2*gx)*halfT;
+    q0 = q0 + (-q1*gx - q2*gy - q3*gz) * k_xy_t.halfT;
+    q1 = q1 + (q0*gx + q2*gz - q3*gy)  * k_xy_t.halfT;
+    q2 = q2 + (q0*gy - q1*gz + q3*gx)  * k_z_t.halfT;
+    q3 = q3 + (q0*gz + q1*gy - q2*gx)  * k_z_t.halfT;
 
     norm = sqrt(q0*q0 + q1*q1 + q2*q2 + q3*q3);
     q0 = q0 / norm;

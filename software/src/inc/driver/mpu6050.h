@@ -128,6 +128,14 @@ struct gimbal_info
     float yaw;
 };
 
+struct kalman_t
+{
+    double  Kp;
+    double  Ki;
+    double  halfT;
+};
+
+
 enum GYRO_RANGE
 {
     BPS_250,
@@ -164,7 +172,6 @@ float MPU_Get_Temperature(void);
 uint8_t MPU_Get_Gyroscope(short *gx, short *gy, short *gz);
 uint8_t MPU_Get_Accelerometer(short *ax, short *ay, short *az);
 
-void Correcting_Dviations();
 double getAccedata(short raw_data);
 double getGyrodata(short raw_data);
 void Compute_Angle(struct gimbal_info *gimbal);
