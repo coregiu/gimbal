@@ -10,6 +10,8 @@ struct kalman_t k_z_t = {100.0, 0.003f, 0.003f};
 double q0 = 1, q1 = 0, q2 = 0, q3 = 0;
 double exInt = 0, eyInt = 0, ezInt = 0;
 
+double iloop = 0.0;
+
 enum ACCE_RANGE AccR = ACC_2G;
 enum GYRO_RANGE GyrR = BPS_2000;
 
@@ -405,16 +407,16 @@ void Compute_Angle(struct gimbal_info *gimbal)
     gimbal->gyro_y = gy;
     gimbal->gyro_z = gz;
 
-    uart_log_data('$');
-    uart_log_number(q0 * 10000);
-    uart_log_data('|');
-    uart_log_number(q1 * 10000);
-    uart_log_data('|');
-    uart_log_number(q2 * 10000);
-    uart_log_data('|');
-    uart_log_number(q3 * 10000);
-    uart_log_data('|');
-    uart_log_enter_char();
+    // uart_log_data('$');
+    // uart_log_number(q0 * 10000);
+    // uart_log_data('|');
+    // uart_log_number(q1 * 10000);
+    // uart_log_data('|');
+    // uart_log_number(q2 * 10000);
+    // uart_log_data('|');
+    // uart_log_number(q3 * 10000);
+    // uart_log_data('|');
+    // uart_log_enter_char();
 
     // gimbal->pitch  = asin(-2 * q1 * q3 + 2 * q0* q2)* 57.3;
     // gimbal->roll   = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2* q2 + 1)* 57.3;
@@ -423,5 +425,18 @@ void Compute_Angle(struct gimbal_info *gimbal)
     gimbal->pitch  = asin(2 * (q0 * q2 - q1 * q3)) * 57.3;
     gimbal->roll   = atan2(2 * (q2 * q3 + q0 * q1), 1 - 2 * (q1 * q1 + q2 * q2)) * 57.3;
     gimbal->yaw    = atan2(2 * (q1 * q2 + q0 * q3), 1 - 2 * (q2 * q2 + q3 * q3)) * 57.3;
+
+    // add by coregiu
+    gimbal->yaw = gimbal->yaw * 3;
+    if (gimbal->yaw > 0)
+    {
+        iloop += 4.1;
+        gimbal->yaw = gimbal->yaw - iloop;
+    }
+    else
+    {
+        iloop -= 4.1;
+        gimbal->yaw = gimbal->yaw + iloop;
+    }
 }
 
