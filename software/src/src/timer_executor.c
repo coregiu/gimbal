@@ -3,8 +3,8 @@
 #include "led_display.h"
 #include "controller.h"
 
-struct gimbal_info gimbal_info = {0, 0, 0, 0.0, 0.0, 0.0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-struct gimbal_info pre_gimbal_info = {0, 0, 0, 0.0, 0.0, 0.0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+struct gimbal_info gimbal_info = {0};
+struct gimbal_info pre_gimbal_info = {0};
 int32_t gimbale_data_buffer[6] = {0};
 
 void create_timer_executor()

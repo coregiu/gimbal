@@ -143,6 +143,14 @@ struct gimbal_info
     double accl_y;
     double accl_z;
 
+    short magn_x_raw;
+    short magn_y_raw;
+    short magn_z_raw;
+
+    double magn_x;
+    double magn_y;
+    double magn_z;
+
     float temperature;
 
     float pitch;
