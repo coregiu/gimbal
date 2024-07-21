@@ -79,6 +79,24 @@
 #define MPU_FIFO_RW_REG 0X74      // FIFO读写寄存器
 #define MPU_DEVICE_ID_REG 0X75    // 器件ID寄存器
 #define MPU_6500_WHO_AMI_I 0x70   // MPU6500寄存器自验值
+#define MPU6500_ID1				0X71  	//MPU6500的器件ID1
+#define MPU6500_ID2				0X73  	//MPU6500的器件ID2
+
+//MPU9250内部封装了一个AK8963磁力计,地址和ID如下:
+#define AK8963_ADDR				0X0C	//AK8963的I2C地址
+#define AK8963_ID				0X48	//AK8963的器件ID
+
+//AK8963的内部寄存器
+#define MAG_WIA					0x00	//AK8963的器件ID寄存器地址
+#define MAG_CNTL1          	  	0X0A
+#define MAG_CNTL2            	0X0B
+
+#define MAG_XOUT_L				0X03
+#define MAG_XOUT_H				0X04
+#define MAG_YOUT_L				0X05
+#define MAG_YOUT_H				0X06
+#define MAG_ZOUT_L				0X07
+#define MAG_ZOUT_H				0X08
 
 // 如果AD0脚(9脚)接地,IIC地址为0X68(不包含最低位).
 // 如果接V3.3,则IIC地址为0X69(不包含最低位).
@@ -90,6 +108,10 @@
 #define GYRO_YOUT_L 0x46
 #define GYRO_ZOUT_H 0x47
 #define GYRO_ZOUT_L 0x48
+
+#define gryo_scale   	(4000.0/65536.0*3.14159/180.0)			//弧度秒
+#define accel_scale 	(4.0/65536.0)												//G单位
+#define mag_scale 	  (9600.0/16384.0/100.0)							//高斯单位
 
 // Kalman structure
 typedef struct
@@ -128,14 +150,6 @@ struct gimbal_info
     float yaw;
 };
 
-struct kalman_t
-{
-    double  Kp;
-    double  Ki;
-    double  halfT;
-};
-
-
 enum GYRO_RANGE
 {
     BPS_250,
@@ -159,8 +173,8 @@ enum ACCE_RANGE
 uint8_t MPU_Init(void);                                                      // 初始化MPU6050
 uint8_t MPU_Write_Len(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf); // IIC连续写
 uint8_t MPU_Read_Len(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf);  // IIC连续读
-uint8_t MPU_Write_Byte(uint8_t reg, uint8_t data);                           // IIC写一个字节
-uint8_t MPU_Read_Byte(uint8_t reg);                                          // IIC读一个字节
+uint8_t MPU_Write_Byte(uint8_t addr, uint8_t reg, uint8_t data);                           // IIC写一个字节
+uint8_t MPU_Read_Byte(uint8_t addr, uint8_t reg);                                          // IIC读一个字节
 
 uint8_t MPU_Set_Gyro_Fsr(uint8_t fsr);
 uint8_t MPU_Set_Accel_Fsr(uint8_t fsr);
@@ -171,9 +185,15 @@ uint8_t MPU_Set_Fifo(uint8_t sens);
 float MPU_Get_Temperature(void);
 uint8_t MPU_Get_Gyroscope(short *gx, short *gy, short *gz);
 uint8_t MPU_Get_Accelerometer(short *ax, short *ay, short *az);
+uint8_t MPU_Get_Magnetometer(short *mx,short *my,short *mz);
 
 double getAccedata(short raw_data);
 double getGyrodata(short raw_data);
+void MPU_Get_Mag(short *imx,short *imy,short *imz,float *mx,float *my,float *mz);
+void calibrate(void);
+
 void Compute_Angle(struct gimbal_info *gimbal);
+
+void AHRSupdate(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz, float *roll, float *pitch, float *yaw);
 
 #endif

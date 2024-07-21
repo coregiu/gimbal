@@ -4,13 +4,20 @@
 
 #define RAD_TO_DEG 57.295779513082320876798154814105
 
-struct kalman_t k_xy_t = {100.0, 0.003f, 0.003f};
-struct kalman_t k_z_t = {100.0, 0.003f, 0.003f};
-
 double q0 = 1, q1 = 0, q2 = 0, q3 = 0;
 double exInt = 0, eyInt = 0, ezInt = 0;
 
-double iloop = 0.0;
+const short SAMPLEF_REQ = 50;
+const double dt = 0.02f;
+const double Kp = 2.0f;
+const double Ki = 0.005f;
+const double halfT = 0.01f;
+
+short magoldx, magoldy, magoldz;
+short gyro_offsetx = 0, gyro_offsety = 0, gyro_offsetz = 0;
+
+float magoffsetx = 1.31454428611172, magoffsety = -1.21753632395713, magoffsetz = 1.6567777185719;
+float B[6] = {0.980358187761106, -0.0105514731414606, 0.00754899338354401, 0.950648704823113, -0.0354995317649016, 1.07449478456729};
 
 enum ACCE_RANGE AccR = ACC_2G;
 enum GYRO_RANGE GyrR = BPS_2000;
@@ -23,23 +30,22 @@ uint8_t MPU_Init(void)
     uint8_t res;
 
     // TODO 初始化IIC总线
-    MPU_Write_Byte(MPU_PWR_MGMT1_REG, 0X80); // 复位MPU6050
+    MPU_Write_Byte(MPU_ADDR, MPU_PWR_MGMT1_REG, 0X80); // 复位MPU6050
     delay_ms(100);
-    MPU_Write_Byte(MPU_PWR_MGMT1_REG, 0X00); // 唤醒MPU6050
+    MPU_Write_Byte(MPU_ADDR, MPU_PWR_MGMT1_REG, 0X00); // 唤醒MPU6050
     MPU_Set_Gyro_Fsr(3);                     // 陀螺仪传感器,±2000dps
     MPU_Set_Accel_Fsr(0);                    // 加速度传感器,±2g
-    MPU_Set_Rate(50);                        // 设置采样率50Hz
-    MPU_Write_Byte(MPU_INT_EN_REG, 0X00);    // 关闭所有中断
-    MPU_Write_Byte(MPU_USER_CTRL_REG, 0X00); // I2C主模式关闭
-    MPU_Write_Byte(MPU_FIFO_EN_REG, 0X00);   // 关闭FIFO
-    MPU_Write_Byte(MPU_INTBP_CFG_REG, 0X80); // INT引脚低电平有效
-    res = MPU_Read_Byte(MPU_DEVICE_ID_REG);
-    if (res == MPU_ADDR || res == MPU_6500_WHO_AMI_I) // 器件ID正确
+    MPU_Set_Rate(SAMPLEF_REQ);                        // 设置采样率50Hz
+    MPU_Write_Byte(MPU_ADDR, MPU_INT_EN_REG, 0X00);    // 关闭所有中断
+    MPU_Write_Byte(MPU_ADDR, MPU_USER_CTRL_REG, 0X00); // I2C主模式关闭
+    MPU_Write_Byte(MPU_ADDR, MPU_FIFO_EN_REG, 0X00);   // 关闭FIFO
+    MPU_Write_Byte(MPU_ADDR, MPU_INTBP_CFG_REG, 0X80); // INT引脚低电平有效
+    res = MPU_Read_Byte(MPU_ADDR, MPU_DEVICE_ID_REG);
+    if (res == MPU_ADDR || res == MPU_6500_WHO_AMI_I || res == MPU6500_ID1 || res == MPU6500_ID2) // 器件ID正确
     {
-        MPU_Write_Byte(MPU_PWR_MGMT1_REG, 0X01); // 设置CLKSEL,PLL X轴为参考
-        MPU_Write_Byte(MPU_PWR_MGMT2_REG, 0X00); // 加速度与陀螺仪都工作
-        MPU_Set_Rate(50);                        // 设置采样率为50Hz
-        return 0;
+        MPU_Write_Byte(MPU_ADDR, MPU_PWR_MGMT1_REG, 0X01); // 设置CLKSEL,PLL X轴为参考
+        MPU_Write_Byte(MPU_ADDR, MPU_PWR_MGMT2_REG, 0X00); // 加速度与陀螺仪都工作
+        MPU_Set_Rate(SAMPLEF_REQ);                        // 设置采样率为50Hz
     }
     else
     {
@@ -48,6 +54,21 @@ uint8_t MPU_Init(void)
         uart_log_enter_char();
         return 1;
     }
+
+    res = MPU_Read_Byte(AK8963_ADDR, MAG_WIA); // 读取AK8963 ID
+    if (res == AK8963_ID)
+    {
+        MPU_Write_Byte(AK8963_ADDR, MAG_CNTL2, 0X01); // 复位AK8963
+        delay_ms(50);
+        MPU_Write_Byte(AK8963_ADDR, MAG_CNTL1, 0X11); // 设置AK8963为单次测量
+    }
+    else
+        return 1;
+
+
+    calibrate();
+
+    return 0;
 }
 // 设置MPU6050陀螺仪传感器满量程范围
 // fsr:0,±250dps;1,±500dps;2,±1000dps;3,±2000dps
@@ -55,7 +76,7 @@ uint8_t MPU_Init(void)
 //     其他,设置失败
 uint8_t MPU_Set_Gyro_Fsr(uint8_t fsr)
 {
-    return MPU_Write_Byte(MPU_GYRO_CFG_REG, fsr << 3); // 设置陀螺仪满量程范围
+    return MPU_Write_Byte(MPU_ADDR, MPU_GYRO_CFG_REG, fsr << 3); // 设置陀螺仪满量程范围
 }
 // 设置MPU6050加速度传感器满量程范围
 // fsr:0,±2g;1,±4g;2,±8g;3,±16g
@@ -63,7 +84,7 @@ uint8_t MPU_Set_Gyro_Fsr(uint8_t fsr)
 //     其他,设置失败
 uint8_t MPU_Set_Accel_Fsr(uint8_t fsr)
 {
-    return MPU_Write_Byte(MPU_ACCEL_CFG_REG, fsr << 3); // 设置加速度传感器满量程范围
+    return MPU_Write_Byte(MPU_ADDR, MPU_ACCEL_CFG_REG, fsr << 3); // 设置加速度传感器满量程范围
 }
 // 设置MPU6050的数字低通滤波器
 // lpf:数字低通滤波频率(Hz)
@@ -84,7 +105,7 @@ uint8_t MPU_Set_LPF(uint16_t lpf)
         data = 5;
     else
         data = 6;
-    return MPU_Write_Byte(MPU_CFG_REG, data); // 设置数字低通滤波器
+    return MPU_Write_Byte(MPU_ADDR, MPU_CFG_REG, data); // 设置数字低通滤波器
 }
 // 设置MPU6050的采样率(假定Fs=1KHz)
 // rate:4~1000(Hz)
@@ -98,7 +119,7 @@ uint8_t MPU_Set_Rate(uint16_t rate)
     if (rate < 4)
         rate = 4;
     data = 1000 / rate - 1;
-    data = MPU_Write_Byte(MPU_SAMPLE_RATE_REG, data); // 设置数字低通滤波器
+    data = MPU_Write_Byte(MPU_ADDR, MPU_SAMPLE_RATE_REG, data); // 设置数字低通滤波器
     return MPU_Set_LPF(rate / 2);                     // 自动设置LPF为采样率的一半
 }
 
@@ -152,6 +173,47 @@ uint8_t MPU_Get_Gyroscope(short *gx, short *gy, short *gz)
         *gz = ((uint16_t)z_h << 8) | z_l;
     }
     return res;
+}
+
+// 得到磁力计值(原始值)，平均滤波并调整方位
+// mx,my,mz:磁力计x,y,z轴的原始读数(带符号)
+// 返回值:0,成功
+//     其他,错误代码
+u8 MPU_Get_Magnetometer(short *mx, short *my, short *mz)
+{
+    u8 buf[6], res;
+    res = MPU_Read_Len(AK8963_ADDR, MAG_XOUT_L, 6, buf);
+    if (res == 0)
+    {
+        *mx = ((u16)buf[1] << 8) | buf[0];
+        *my = ((u16)buf[3] << 8) | buf[2];
+        *mz = ((u16)buf[5] << 8) | buf[4];
+        *my = -*my;
+        *mz = -*mz;
+        *mx = (short)(magoldx * 0.5 + *mx * 0.5);
+        *my = (short)(magoldy * 0.5 + *my * 0.5);
+        *mz = (short)(magoldz * 0.5 + *mz * 0.5);
+        magoldx = *mx;
+        magoldy = *my;
+        magoldz = *mz;
+    }
+    MPU_Write_Byte(AK8963_ADDR, MAG_CNTL1, 0X11); // AK8963每次读完以后都需要重新设置为单次测量模式
+    return res;
+}
+
+/*//////////////////////////////////////////////////
+*@功能：获得磁力计数据，单位高斯，并对磁力计进行补偿
+*
+*
+///////////////////////////////////////////////////*/
+void MPU_Get_Mag(short *imx, short *imy, short *imz, float *mx, float *my, float *mz)
+{
+    double tmp1 = (double)(*imx) * mag_scale - magoffsetx;
+    double tmp2 = (double)(*imy) * mag_scale - magoffsety;
+    double tmp3 = (double)(*imz) * mag_scale - magoffsetz;
+    *mx = B[0] * tmp1 + B[1] * tmp2 + B[2] * tmp3;
+    *my = B[1] * tmp1 + B[3] * tmp2 + B[4] * tmp3;
+    *mz = B[2] * tmp1 + B[4] * tmp2 + B[5] * tmp3;
 }
 
 // 得到加速度值(原始值)
@@ -260,10 +322,10 @@ uint8_t MPU_Read_Len(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf)
 // data:数据
 // 返回值:0,正常
 //     其他,错误代码
-uint8_t MPU_Write_Byte(uint8_t reg, uint8_t data)
+uint8_t MPU_Write_Byte(uint8_t addr, uint8_t reg, uint8_t data)
 {
     MPU_IIC_Start();
-    MPU_IIC_Send_Byte((MPU_ADDR << 1) | 0); // 发送器件地址+写命令
+    MPU_IIC_Send_Byte((addr << 1) | 0); // 发送器件地址+写命令
     if (MPU_IIC_Wait_Ack())                 // 等待应答
     {
         MPU_IIC_Stop();
@@ -283,7 +345,7 @@ uint8_t MPU_Write_Byte(uint8_t reg, uint8_t data)
 // IIC读一个字节
 // reg:寄存器地址
 // 返回值:读到的数据
-uint8_t MPU_Read_Byte(uint8_t reg)
+uint8_t MPU_Read_Byte(uint8_t addr, uint8_t reg)
 {
     uint8_t res;
     MPU_IIC_Start();
@@ -381,18 +443,18 @@ void Compute_Angle(struct gimbal_info *gimbal)
     ey = (az*vx - ax*vz);
     ez = (ax*vy - ay*vx);
 
-    exInt = exInt + ex * k_xy_t.Ki;
-    eyInt = eyInt + ey * k_xy_t.Ki;
-    ezInt = ezInt + ez * k_z_t.Ki;
+    exInt = exInt + ex * Ki;
+    eyInt = eyInt + ey * Ki;
+    ezInt = ezInt + ez * Ki;
 
-    gx = gx + k_xy_t.Kp * ex + exInt;
-    gy = gy + k_xy_t.Kp * ey + eyInt;
-    gz = gz + k_z_t.Kp * ez + ezInt;
+    gx = gx + Kp * ex + exInt;
+    gy = gy + Kp * ey + eyInt;
+    gz = gz + Kp * ez + ezInt;
 
-    q0 = q0 + (-q1*gx - q2*gy - q3*gz) * k_xy_t.halfT;
-    q1 = q1 + (q0*gx + q2*gz - q3*gy)  * k_xy_t.halfT;
-    q2 = q2 + (q0*gy - q1*gz + q3*gx)  * k_z_t.halfT;
-    q3 = q3 + (q0*gz + q1*gy - q2*gx)  * k_z_t.halfT;
+    q0 = q0 + (-q1*gx - q2*gy - q3*gz) * halfT;
+    q1 = q1 + (q0*gx + q2*gz - q3*gy)  * halfT;
+    q2 = q2 + (q0*gy - q1*gz + q3*gx)  * halfT;
+    q3 = q3 + (q0*gz + q1*gy - q2*gx)  * halfT;
 
     norm = sqrt(q0*q0 + q1*q1 + q2*q2 + q3*q3);
     q0 = q0 / norm;
@@ -427,3 +489,134 @@ void Compute_Angle(struct gimbal_info *gimbal)
     gimbal->yaw    = atan2(2 * (q1 * q2 + q0 * q3), 1 - 2 * (q2 * q2 + q3 * q3)) * 57.3;
 }
 
+void AHRSupdate(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz, float *roll, float *pitch, float *yaw)
+{
+    double norm;               // 用于单位化
+    double hx, hy, hz, bx, bz; //
+    double vx, vy, vz, wx, wy, wz;
+    double ex, ey, ez;
+
+    // auxiliary variables to reduce number of repeated operations  辅助变量减少重复操作次数
+    double q0q0 = q0 * q0;
+    double q0q1 = q0 * q1;
+    double q0q2 = q0 * q2;
+    double q0q3 = q0 * q3;
+    double q1q1 = q1 * q1;
+    double q1q2 = q1 * q2;
+    double q1q3 = q1 * q3;
+    double q2q2 = q2 * q2;
+    double q2q3 = q2 * q3;
+    double q3q3 = q3 * q3;
+
+    double k10, k11, k12, k13, k20, k21, k22, k23, k30, k31, k32, k33, k40, k41, k42, k43;
+
+    // normalise the measurements  对加速度计和磁力计数据进行规范化
+    norm = sqrt(ax * ax + ay * ay + az * az);
+    ax = ax / norm;
+    ay = ay / norm;
+    az = az / norm;
+    norm = sqrt(mx * mx + my * my + mz * mz);
+    mx = mx / norm;
+    my = my / norm;
+    mz = mz / norm;
+
+    // compute reference direction of magnetic field  计算磁场的参考方向
+    // hx,hy,hz是mx,my,mz在参考坐标系的表示
+    hx = 2 * mx * (0.5 - q2q2 - q3q3) + 2 * my * (q1q2 - q0q3) + 2 * mz * (q1q3 + q0q2);
+    hy = 2 * mx * (q1q2 + q0q3) + 2 * my * (0.5 - q1q1 - q3q3) + 2 * mz * (q2q3 - q0q1);
+    hz = 2 * mx * (q1q3 - q0q2) + 2 * my * (q2q3 + q0q1) + 2 * mz * (0.5 - q1q1 - q2q2);
+    // bx,by,bz是地球磁场在参考坐标系的表示
+    bx = sqrt((hx * hx) + (hy * hy));
+    bz = hz;
+
+    // estimated direction of gravity and magnetic field (v and w)  //估计重力和磁场的方向
+    // vx,vy,vz是重力加速度在物体坐标系的表示
+    vx = 2 * (q1q3 - q0q2);
+    vy = 2 * (q0q1 + q2q3);
+    vz = q0q0 - q1q1 - q2q2 + q3q3;
+    // wx,wy,wz是地磁场在物体坐标系的表示
+    wx = 2 * bx * (0.5 - q2q2 - q3q3) + 2 * bz * (q1q3 - q0q2);
+    wy = 2 * bx * (q1q2 - q0q3) + 2 * bz * (q0q1 + q2q3);
+    wz = 2 * bx * (q0q2 + q1q3) + 2 * bz * (0.5 - q1q1 - q2q2);
+
+    // error is sum ofcross product between reference direction of fields and directionmeasured by sensors
+    // ex,ey,ez是加速度计与磁力计测量出的方向与实际重力加速度与地磁场方向的误差，误差用叉积来表示，且加速度计与磁力计的权重是一样的
+    ex = (ay * vz - az * vy) + (my * wz - mz * wy);
+    ey = (az * vx - ax * vz) + (mz * wx - mx * wz);
+    ez = (ax * vy - ay * vx) + (mx * wy - my * wx);
+
+    // integral error scaled integral gain
+    // 积分误差
+    exInt = exInt + ex * Ki * (1.0f / SAMPLEF_REQ);
+    eyInt = eyInt + ey * Ki * (1.0f / SAMPLEF_REQ);
+    ezInt = ezInt + ez * Ki * (1.0f / SAMPLEF_REQ);
+    // adjusted gyroscope measurements
+    // PI调节陀螺仪数据
+    gx = gx + Kp * ex + exInt;
+    gy = gy + Kp * ey + eyInt;
+    gz = gz + Kp * ez + ezInt;
+
+    // integrate quaernion rate aafnd normalaizle
+    // 欧拉法解微分方程
+    //           q0 = q0 + (-q1*gx - q2*gy - q3*gz)*halfT;
+    //           q1 = q1 + (q0*gx + q2*gz - q3*gy)*halfT;
+    //           q2 = q2 + (q0*gy - q1*gz + q3*gx)*halfT;
+    //           q3 = q3 + (q0*gz + q1*gy - q2*gx)*halfT;
+    // RUNGE_KUTTA 法解微分方程
+    k10 = 0.5 * (-gx * q1 - gy * q2 - gz * q3);
+    k11 = 0.5 * (gx * q0 + gz * q2 - gy * q3);
+    k12 = 0.5 * (gy * q0 - gz * q1 + gx * q3);
+    k13 = 0.5 * (gz * q0 + gy * q1 - gx * q2);
+
+    k20 = 0.5 * (halfT * (q0 + halfT * k10) + (halfT - gx) * (q1 + halfT * k11) + (halfT - gy) * (q2 + halfT * k12) + (halfT - gz) * (q3 + halfT * k13));
+    k21 = 0.5 * ((halfT + gx) * (q0 + halfT * k10) + halfT * (q1 + halfT * k11) + (halfT + gz) * (q2 + halfT * k12) + (halfT - gy) * (q3 + halfT * k13));
+    k22 = 0.5 * ((halfT + gy) * (q0 + halfT * k10) + (halfT - gz) * (q1 + halfT * k11) + halfT * (q2 + halfT * k12) + (halfT + gx) * (q3 + halfT * k13));
+    k23 = 0.5 * ((halfT + gz) * (q0 + halfT * k10) + (halfT + gy) * (q1 + halfT * k11) + (halfT - gx) * (q2 + halfT * k12) + halfT * (q3 + halfT * k13));
+
+    k30 = 0.5 * (halfT * (q0 + halfT * k20) + (halfT - gx) * (q1 + halfT * k21) + (halfT - gy) * (q2 + halfT * k22) + (halfT - gz) * (q3 + halfT * k23));
+    k31 = 0.5 * ((halfT + gx) * (q0 + halfT * k20) + halfT * (q1 + halfT * k21) + (halfT + gz) * (q2 + halfT * k22) + (halfT - gy) * (q3 + halfT * k23));
+    k32 = 0.5 * ((halfT + gy) * (q0 + halfT * k20) + (halfT - gz) * (q1 + halfT * k21) + halfT * (q2 + halfT * k22) + (halfT + gx) * (q3 + halfT * k23));
+    k33 = 0.5 * ((halfT + gz) * (q0 + halfT * k20) + (halfT + gy) * (q1 + halfT * k21) + (halfT - gx) * (q2 + halfT * k22) + halfT * (q3 + halfT * k23));
+
+    k40 = 0.5 * (dt * (q0 + dt * k30) + (dt - gx) * (q1 + dt * k31) + (dt - gy) * (q2 + dt * k32) + (dt - gz) * (q3 + dt * k33));
+    k41 = 0.5 * ((dt + gx) * (q0 + dt * k30) + dt * (q1 + dt * k31) + (dt + gz) * (q2 + dt * k32) + (dt - gy) * (q3 + dt * k33));
+    k42 = 0.5 * ((dt + gy) * (q0 + dt * k30) + (dt - gz) * (q1 + dt * k31) + dt * (q2 + dt * k32) + (dt + gx) * (q3 + dt * k33));
+    k43 = 0.5 * ((dt + gz) * (q0 + dt * k30) + (dt + gy) * (q1 + dt * k31) + (dt - gx) * (q2 + dt * k32) + dt * (q3 + dt * k33));
+
+    q0 = q0 + dt / 6.0 * (k10 + 2 * k20 + 2 * k30 + k40);
+    q1 = q1 + dt / 6.0 * (k11 + 2 * k21 + 2 * k31 + k41);
+    q2 = q2 + dt / 6.0 * (k12 + 2 * k22 + 2 * k32 + k42);
+    q3 = q3 + dt / 6.0 * (k13 + 2 * k23 + 2 * k33 + k43);
+
+    // normalise quaternion
+    norm = sqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
+    q0 = q0 / norm;
+    q1 = q1 / norm;
+    q2 = q2 / norm;
+    q3 = q3 / norm;
+
+    *pitch = asin(-2 * q1 * q3 + 2 * q0 * q2) * 57.3;                                    // pitch
+    *roll = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2 * q2 + 1) * 57.3;     // roll
+    *yaw = atan2(2 * (q1 * q2 + q0 * q3), q0 * q0 + q1 * q1 - q2 * q2 - q3 * q3) * 57.3; // yaw
+}
+
+/*/////////////////////////////////////////////
+*@功能：补偿陀螺仪漂移
+*
+*
+/////////////////////////////////////////////*/
+void calibrate(void)
+{
+    u8 t;
+    short gx, gy, gz, sumx = 0, sumy = 0, sumz = 0;
+    for (t = 0; t < 10; t++)
+    {
+        MPU_Get_Gyroscope(&gx, &gy, &gz);
+        sumx = sumx + gx;
+        sumy = sumy + gy;
+        sumz = sumz + gz;
+    }
+    gyro_offsetx = -sumx / 10;
+    gyro_offsety = -sumy / 10;
+    gyro_offsetz = -sumz / 10;
+}
