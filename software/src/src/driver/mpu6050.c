@@ -160,8 +160,8 @@ float MPU_Get_Temperature(void)
     MPU_Read_Len(MPU_ADDR, MPU_TEMP_OUTH_REG, 2, &t_h);
     MPU_Read_Len(MPU_ADDR, MPU_TEMP_OUTL_REG, 2, &t_l);
     raw = ((uint16_t)t_h << 8) | t_l;
-    temp = (float)((int16_t)raw / (float)340.0 + (float)36.53);
-    ;
+    temp = (float)((int16_t)raw / (float)340.0 + (float)33.53);
+
     return temp;
 }
 // 得到陀螺仪值(原始值)
@@ -394,19 +394,19 @@ double getAccedata(short raw_data)
     switch (AccR)
     {
         case ACC_2G:
-            temp = (double)raw_data / 32767 * 9.8;
-            return temp;
-
-        case ACC_4G:
             temp = (double)raw_data / 16384 * 9.8;
             return temp;
 
-        case ACC_8G:
+        case ACC_4G:
             temp = (double)raw_data / 8192 * 9.8;
             return temp;
 
-        case ACC_16G:
+        case ACC_8G:
             temp = (double)raw_data / 4096 * 9.8;
+            return temp;
+
+        case ACC_16G:
+            temp = (double)raw_data / 2048 * 9.8;
             return temp;
     }
 
@@ -419,19 +419,19 @@ double getGyrodata(short raw_data)
     switch (GyrR)
     {
         case BPS_250:
-            temp =  (double)raw_data / 262;
+            temp =  (double)raw_data / 131.072;
             return temp;
 
         case BPS_500:
-            temp =  (double)raw_data / 161;
+            temp =  (double)raw_data / 65.536;
             return temp;
 
         case BPS_1000:
-            temp =  (double)raw_data / 65.5;
+            temp =  (double)raw_data / 32.768;
             return temp;
 
         case BPS_2000:
-            temp =  (double)raw_data / 32.75;
+            temp =  (double)raw_data / 16.384;
             return temp;
     }
 
