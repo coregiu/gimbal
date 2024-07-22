@@ -152,11 +152,11 @@ struct gimbal_info
     double magn_y;
     double magn_z;
 
-    float temperature;
+    double temperature;
 
-    float pitch;
-    float roll;
-    float yaw;
+    double pitch;
+    double roll;
+    double yaw;
 };
 
 enum GYRO_RANGE
@@ -182,35 +182,36 @@ enum MPU_TYPE
     MPU_9250,
     ERROR_TYPE
 };
-
+extern enum MPU_TYPE mpu_type;
 // 因为模块AD0默认接GND,所以转为读写地址后,为0XD1和0XD0(如果接VCC,则为0XD3和0XD2)
 // #define MPU_READ    0XD1
 // #define MPU_WRITE   0XD0
 
-uint8_t MPU_Init(void);                                                      // 初始化MPU6050
-uint8_t MPU_Write_Len(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf); // IIC连续写
-uint8_t MPU_Read_Len(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf);  // IIC连续读
-uint8_t MPU_Write_Byte(uint8_t addr, uint8_t reg, uint8_t data);                           // IIC写一个字节
-uint8_t MPU_Read_Byte(uint8_t addr, uint8_t reg);                                          // IIC读一个字节
+uint8_t mpu_init(void);                                                      // 初始化MPU6050
+uint8_t mpu_write_len(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf); // IIC连续写
+uint8_t mpu_read_len(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf);  // IIC连续读
+uint8_t mpu_write_byte(uint8_t addr, uint8_t reg, uint8_t data);                           // IIC写一个字节
+uint8_t mpu_read_byte(uint8_t addr, uint8_t reg);                                          // IIC读一个字节
 
-uint8_t MPU_Set_Gyro_Fsr(uint8_t fsr);
-uint8_t MPU_Set_Accel_Fsr(uint8_t fsr);
-uint8_t MPU_Set_LPF(uint16_t lpf);
-uint8_t MPU_Set_Rate(uint16_t rate);
-uint8_t MPU_Set_Fifo(uint8_t sens);
+uint8_t mpu_set_gyro_fsr(uint8_t fsr);
+uint8_t mpu_set_accel_fsr(uint8_t fsr);
+uint8_t mpu_set_lpf(uint16_t lpf);
+uint8_t mpu_set_rate(uint16_t rate);
+uint8_t mpu_set_fifo(uint8_t sens);
 
-float MPU_Get_Temperature(void);
-uint8_t MPU_Get_Gyroscope(short *gx, short *gy, short *gz);
-uint8_t MPU_Get_Accelerometer(short *ax, short *ay, short *az);
-uint8_t MPU_Get_Magnetometer(short *mx,short *my,short *mz);
+double mpu_get_temperature(void);
+uint8_t mpu_get_gyroscope(short *gx, short *gy, short *gz);
+uint8_t mpu_get_accelerometer(short *ax, short *ay, short *az);
+uint8_t mpu_get_magnetometer(short *mx,short *my,short *mz);
 
-double getAccedata(short raw_data);
-double getGyrodata(short raw_data);
-void MPU_Get_Mag(short *imx,short *imy,short *imz,float *mx,float *my,float *mz);
+double get_accedata(short raw_data);
+double get_gyrodata(short raw_data);
+void mpu_compute_mag(short *imx,short *imy,short *imz,double *mx,double *my,double *mz);
+
 void calibrate(void);
 
-void Compute_Angle(struct gimbal_info *gimbal);
+void compute_angle(struct gimbal_info *gimbal);
 
-void AHRSupdate(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz, float *roll, float *pitch, float *yaw);
+void ahrs_update(struct gimbal_info *gimbal);
 
 #endif

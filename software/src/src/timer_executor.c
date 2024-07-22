@@ -72,7 +72,7 @@ void init_timer_module()
 {
     create_timer_executor();
     bind_dma1_to_iic2();
-    uint8_t result = MPU_Init();
+    uint8_t result = mpu_init();
     if (result != 0)
     {
         uart_log_string_no_enter("mpu init error: ");
@@ -159,18 +159,37 @@ void TIM2_IRQHandler(void)
         TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
         // LED = ~LED;
 
-	    uchar result = MPU_Get_Gyroscope(&gimbal_info.gyro_x_raw, &gimbal_info.gyro_y_raw, &gimbal_info.gyro_z_raw);
-        result |= MPU_Get_Accelerometer(&gimbal_info.accl_x_raw, &gimbal_info.accl_y_raw, &gimbal_info.accl_z_raw);
-        gimbal_info.temperature = MPU_Get_Temperature();
+	    uchar result = mpu_get_gyroscope(&gimbal_info.gyro_x_raw, &gimbal_info.gyro_y_raw, &gimbal_info.gyro_z_raw);
+        result |= mpu_get_accelerometer(&gimbal_info.accl_x_raw, &gimbal_info.accl_y_raw, &gimbal_info.accl_z_raw);
+        gimbal_info.temperature = mpu_get_temperature();
 
-        log_gimbal_info(&gimbal_info);
         if (result != 0)
         {
             uart_log_string_data("mpu read error");
             return;
         }
 
-        Compute_Angle(&gimbal_info);
+        if (mpu_type == MPU_6050 || mpu_type == MPU_6500)
+        {
+            compute_angle(&gimbal_info);
+        }
+        else if (mpu_type == MPU_9250)
+        {
+            result = mpu_get_magnetometer(&gimbal_info.magn_x_raw, &gimbal_info.magn_y_raw, &gimbal_info.magn_z_raw);
+            if (result != 0)
+            {
+                uart_log_string_data("magn read error");
+                return;
+            }
+            mpu_compute_mag(&gimbal_info.magn_x_raw, &gimbal_info.magn_y_raw, &gimbal_info.magn_z_raw, &gimbal_info.magn_x, &gimbal_info.magn_y, &gimbal_info.magn_z);
+            ahrs_update(&gimbal_info);
+        }
+        else
+        {
+            return;
+        }
+
+        log_gimbal_info(&gimbal_info);
         if (compare_gimbal_info(&pre_gimbal_info, &gimbal_info) == 0)
         {
             // 位置没有变化
