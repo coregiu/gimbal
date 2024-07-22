@@ -78,9 +78,10 @@
 #define MPU_FIFO_CNTL_REG 0X73    // FIFO计数寄存器低八位
 #define MPU_FIFO_RW_REG 0X74      // FIFO读写寄存器
 #define MPU_DEVICE_ID_REG 0X75    // 器件ID寄存器
+#define MPU_6050_WHO_AMI_I 0x68   // MPU6050寄存器自验值
 #define MPU_6500_WHO_AMI_I 0x70   // MPU6500寄存器自验值
-#define MPU6500_ID1				0X71  	//MPU6500的器件ID1
-#define MPU6500_ID2				0X73  	//MPU6500的器件ID2
+#define MPU_9250_WHO_AMI_I				0X71  	//MPU9250的器件ID1
+#define MPU_9250_WHO_AMI_I_2     	    0X73  	//MPU9250的器件ID2
 
 //MPU9250内部封装了一个AK8963磁力计,地址和ID如下:
 #define AK8963_ADDR				0X0C	//AK8963的I2C地址
@@ -172,6 +173,14 @@ enum ACCE_RANGE
     ACC_4G,
     ACC_8G,
     ACC_16G
+};
+
+enum MPU_TYPE
+{
+    MPU_6050,
+    MPU_6500,
+    MPU_9250,
+    ERROR_TYPE
 };
 
 // 因为模块AD0默认接GND,所以转为读写地址后,为0XD1和0XD0(如果接VCC,则为0XD3和0XD2)

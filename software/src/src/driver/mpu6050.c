@@ -7,11 +7,13 @@
 double q0 = 1, q1 = 0, q2 = 0, q3 = 0;
 double exInt = 0, eyInt = 0, ezInt = 0;
 
-const short SAMPLEF_REQ = 50;
-const double dt = 0.02f;
-const double Kp = 2.0f;
+enum MPU_TYPE mpu_type;
+
+const short SAMPLEF_REQ = 500;
+const double dt = 0.002f;
+const double Kp = 100.0f;
 const double Ki = 0.005f;
-const double halfT = 0.01f;
+const double halfT = 0.001f;
 
 short magoldx, magoldy, magoldz;
 short gyro_offsetx = 0, gyro_offsety = 0, gyro_offsetz = 0;
@@ -41,35 +43,60 @@ uint8_t MPU_Init(void)
     MPU_Write_Byte(MPU_ADDR, MPU_FIFO_EN_REG, 0X00);   // 关闭FIFO
     MPU_Write_Byte(MPU_ADDR, MPU_INTBP_CFG_REG, 0X80); // INT引脚低电平有效
     res = MPU_Read_Byte(MPU_ADDR, MPU_DEVICE_ID_REG);
-    if (res == MPU_ADDR || res == MPU_6500_WHO_AMI_I || res == MPU6500_ID1 || res == MPU6500_ID2) // 器件ID正确
+    switch (res)
     {
-        MPU_Write_Byte(MPU_ADDR, MPU_PWR_MGMT1_REG, 0X01); // 设置CLKSEL,PLL X轴为参考
-        MPU_Write_Byte(MPU_ADDR, MPU_PWR_MGMT2_REG, 0X00); // 加速度与陀螺仪都工作
-        MPU_Set_Rate(SAMPLEF_REQ);                        // 设置采样率为50Hz
+    case MPU_6050_WHO_AMI_I:
+        mpu_type = MPU_6050;
+        break;
+    case MPU_6500_WHO_AMI_I:
+        mpu_type = MPU_6500;
+        break;
+    case MPU_9250_WHO_AMI_I:
+        mpu_type = MPU_9250;
+        break;
+    case MPU_9250_WHO_AMI_I_2:
+        mpu_type = MPU_9250;
+        break;
+
+    default:
+        mpu_type = ERROR_TYPE;
+        break;
     }
-    else
+
+    if (mpu_type == ERROR_TYPE) // 器件ID正确
     {
         uart_log_string_no_enter("failed to init mpu res: ");
         uart_log_number(res);
         uart_log_enter_char();
-        return 1;
+        return 1;                    // 设置采样率为50Hz
     }
+    MPU_Write_Byte(MPU_ADDR, MPU_PWR_MGMT1_REG, 0X01); // 设置CLKSEL,PLL X轴为参考
+    MPU_Write_Byte(MPU_ADDR, MPU_PWR_MGMT2_REG, 0X00); // 加速度与陀螺仪都工作
+    MPU_Set_Rate(SAMPLEF_REQ);
 
-    res = MPU_Read_Byte(AK8963_ADDR, MAG_WIA); // 读取AK8963 ID
-    if (res == AK8963_ID)
+    if (mpu_type == MPU_9250)
     {
-        MPU_Write_Byte(AK8963_ADDR, MAG_CNTL2, 0X01); // 复位AK8963
-        delay_ms(50);
-        MPU_Write_Byte(AK8963_ADDR, MAG_CNTL1, 0X11); // 设置AK8963为单次测量
+        res = MPU_Read_Byte(AK8963_ADDR, MAG_WIA); // 读取AK8963 ID
+        if (res == AK8963_ID)
+        {
+            MPU_Write_Byte(AK8963_ADDR, MAG_CNTL2, 0X01); // 复位AK8963
+            delay_ms(50);
+            MPU_Write_Byte(AK8963_ADDR, MAG_CNTL1, 0X11); // 设置AK8963为单次测量
+        }
+        else
+        {
+            uart_log_string_no_enter("failed to init ak8963 res: ");
+            uart_log_number(res);
+            uart_log_enter_char();
+            return 1;
+        }
     }
-    else
-        return 1;
-
 
     calibrate();
 
     return 0;
 }
+
 // 设置MPU6050陀螺仪传感器满量程范围
 // fsr:0,±250dps;1,±500dps;2,±1000dps;3,±2000dps
 // 返回值:0,设置成功
