@@ -39,7 +39,6 @@
 #define SEQUENCE_ENABLE_MSRC        0x04
 
 typedef enum vcselperiodtype { VcselPeriodPreRange, VcselPeriodFinalRange } vcselPeriodType;
-static int setVcselPulsePeriod(vcselPeriodType type, uint8_t period_pclks);
 
 typedef struct tagSequenceStepTimeouts
     {
@@ -50,12 +49,12 @@ typedef struct tagSequenceStepTimeouts
     } SequenceStepTimeouts;
 
 // VL53L0X internal registers
-#define REG_IDENTIFICATION_MODEL_ID		0xc0
-#define REG_IDENTIFICATION_REVISION_ID		0xc2
-#define REG_SYSRANGE_START			0x00
+#define REG_IDENTIFICATION_MODEL_ID		        0xc0
+#define REG_IDENTIFICATION_REVISION_ID		    0xc2
+#define REG_SYSRANGE_START			            0x00
 
-#define REG_RESULT_INTERRUPT_STATUS 		0x13
-#define RESULT_RANGE_STATUS      		0x14
+#define REG_RESULT_INTERRUPT_STATUS 	     	0x13
+#define RESULT_RANGE_STATUS      		        0x14
 #define ALGO_PHASECAL_LIM                       0x30
 #define ALGO_PHASECAL_CONFIG_TIMEOUT            0x30
 
