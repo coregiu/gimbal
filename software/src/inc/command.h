@@ -20,6 +20,7 @@
 #include "task.h"
 #include "timers.h"
 #include "mpu6050.h"
+#include "tof.h"
 
 // define the single light
 #define LED PCout(13)	//PC13 0-light up; 1-turn off.

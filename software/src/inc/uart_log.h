@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include "stm32f10x.h"
 
-#define uint unsigned int
+// #define uint unsigned int
 #define uchar unsigned char
 
 /**
