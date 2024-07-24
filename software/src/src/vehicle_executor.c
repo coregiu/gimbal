@@ -9,9 +9,6 @@
 **/
 #include <vehicle_executor.h>
 
-static BaseType_t priority = 2;
-static BaseType_t *const pxHigherPriorityTaskWoken = &priority;
-
 // the position of gpio in CAR_STATE_LIST array.
 enum gpio_position
 {
@@ -42,22 +39,6 @@ const char VEHICLE_STATE_LIST[12][8] = {
 };
 
 enum vehicle_state current_car_status = STOP;
-
-void send_to_queue(struct command_context *command)
-{
-    if (command_queue == NULL)
-    {
-        uart_log_string_data("command queue is null");
-        return;
-    }
-    // BaseType_t xStatus = xQueueSend(command_queue, command, pdMS_TO_TICKS(100));
-    // BaseType_t xStatus = xQueueSendFromISR(command_queue, &(command->command), xTicksToWait);
-    BaseType_t xStatus = xQueueSendFromISR(command_queue, command, pxHigherPriorityTaskWoken);
-    if (xStatus != pdPASS)
-    {
-        uart_log_start_info("failed to send data"); //如果发送数据失败在这里进行错误处理
-    }
-}
 
 void exec_vehicle_state_update(enum vehicle_state run_state, enum command_type type)
 {

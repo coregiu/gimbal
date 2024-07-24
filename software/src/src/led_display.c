@@ -20,7 +20,7 @@ void init_led_display()
 
 void display_info(struct command_context *command_context)
 {
-
+    show_gimbal_info(&gimbal_info);
 }
 
 void show_short_number(u8 x, u8 y, short number)

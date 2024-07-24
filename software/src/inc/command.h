@@ -25,7 +25,7 @@
 // define the single light
 #define LED PCout(13)	//PC13 0-light up; 1-turn off.
 
-#define COMMANDS_LENGTH 22
+#define COMMANDS_LENGTH 24
 
 #define DEFAULT_BOUND_RATE 9600
 
@@ -83,6 +83,8 @@ enum commands_def
     COMMAND_CLOSE_INTELI = 'I',
     COMMAND_PLAYING      = 'J',
     COMMAND_ADAPTE_SERVO = 'K',
+    COMMAND_GIMBAL_INFO  = 'L',
+    COMMAND_LED_DISPLAY  = 'M',
     COMMAND_UNKNOWN      = 'Z'
 };
 
@@ -93,6 +95,8 @@ enum module_def
     MODULE_VEDIO     = '1',
     MODULE_ROBOOT    = '2',
     MODULE_INTELI    = '3',
+    MODULE_GIMBAL    = '4',
+    MODULE_LED       = '5',
     MODULE_UNKNOWN   = '9'
 };
 
@@ -115,4 +119,7 @@ void init_command_led_module();
 
 // convert command to the array sequence of command_module_map.
 uint convert_command_seq(char command);
+
+void send_to_queue(struct command_context *command);
+
 #endif
