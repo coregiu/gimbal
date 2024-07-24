@@ -88,17 +88,17 @@ typedef struct tagSequenceStepTimeouts
 // Read the model and revision of the
 // tof sensor
 //
-int tofGetModel(int *model, int *revision);
+int tof_get_model(int *model, int *revision);
 
 //
 // Read the current distance in mm
 //
-int tofReadDistance(void);
+int tof_read_distance(void);
 
 //
 // Opens a file system handle to the I2C device
 // sets the device continous capture mode
 //
-int tofInit(int iChan, int iAddr, int bLongRange);
+int tof_init(int iChan, int iAddr, int bLongRange);
 
 #endif // _TOFLIB_H
