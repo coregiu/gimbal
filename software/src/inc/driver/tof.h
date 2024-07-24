@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <fcntl.h>
+#include "uart_log.h"
 // #include <sys/ioctl.h>
 // #include <linux/i2c-dev.h>
 
@@ -80,6 +81,8 @@ typedef struct tagSequenceStepTimeouts
 #define GLOBAL_CONFIG_SPAD_ENABLES_REF_0        0xB0
 #define GPIO_HV_MUX_ACTIVE_HIGH                 0x84
 #define SYSTEM_INTERRUPT_CLEAR                  0x0B
+
+#define TOF_I2C_SLAVE                           0x0703	/* Use this slave address */
 
 //
 // Read the model and revision of the

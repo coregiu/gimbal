@@ -37,16 +37,16 @@ int tofInit(int iChan, int iAddr, int bLongRange)
 {
     char filename[32];
 
-    sprintf(filename, "/dev/i2c-%d", iChan);
+    // sprintf(filename, "/dev/i2c-%d", iChan);
     if ((file_i2c = open(filename, O_RDWR)) < 0)
     {
-        fprintf(stderr, "Failed to open the i2c bus; need to run as sudo?\n");
+        uart_log_string_data("Failed to open the i2c bus; need to run as sudo?");
         return 0;
     }
 
-    if (ioctl(file_i2c, I2C_SLAVE, iAddr) < 0)
+    if (ioctl(file_i2c, TOF_I2C_SLAVE, iAddr) < 0)
     {
-        fprintf(stderr, "Failed to acquire bus access or talk to slave\n");
+        uart_log_string_data("Failed to acquire bus access or talk to slave");
         close(file_i2c);
         file_i2c = -1;
         return 0;
@@ -210,7 +210,7 @@ static int getSpadInfo(unsigned char *pCount, unsigned char *pTypeIsAperture)
     }
     if (iTimeout == MAX_TIMEOUT)
     {
-        fprintf(stderr, "Timeout while waiting for SPAD info\n");
+        uart_log_string_data("Timeout while waiting for SPAD info");
         return 0;
     }
     writeReg(0x83, 0x01);
