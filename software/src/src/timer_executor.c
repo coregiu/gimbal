@@ -70,11 +70,11 @@ void bind_dma1_to_iic2()
     // 使能DMA通道
     DMA1_Channel1->CCR |= DMA_CCR_EN;
 
-    NVIC_InitTypeDef NVIC_InitStructure;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);
+    // NVIC_InitTypeDef NVIC_InitStructure;
+    // NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;
+    // NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+    // NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    // NVIC_Init(&NVIC_InitStructure);
 }
 
 void init_timer_module()
