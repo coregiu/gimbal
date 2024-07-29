@@ -58,7 +58,6 @@ void init_modules()
 
     arm_roboot_executor.init();
     led_display_executor.init();
-    arm_roboot_executor.init();
     timer_executor.init();
 }
 

@@ -193,6 +193,14 @@ void init_vehicle_state()
     GPIO_InitStructure.GPIO_Pin = GPIO_IN8;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
     IN8 = 0;
+
+    GPIO_InitStructure.GPIO_Pin = GPIO_ENL;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    ENL = 1;
+
+    GPIO_InitStructure.GPIO_Pin = GPIO_ENR;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    ENR = 1;
 }
 
 void update_vehicle_state(struct command_context *command_context)
