@@ -24,6 +24,11 @@
 extern const char command_module_map[COMMANDS_LENGTH][2];
 
 /**
+ * init clock to 72MHz.
+ */
+void clock_init(void);
+
+/**
  * init protocols such as iic, uart.
  */
 void init_protocols();
