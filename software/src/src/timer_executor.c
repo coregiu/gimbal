@@ -13,9 +13,9 @@ static void vTimerCallback(TimerHandle_t xTimer);
 
 static TimerHandle_t xMyTimer = NULL;
 
-struct command_context gimbal_cmd = {0, DELAY_BEFOR_EXE, COMMAND_TYPE_AUTO, COMMAND_GIMBAL_INFO};
-struct command_context display_cmd = {0, DELAY_BEFOR_EXE, COMMAND_TYPE_AUTO, COMMAND_LED_DISPLAY};
-struct command_context servo_cmd = {0, DELAY_BEFOR_EXE, COMMAND_TYPE_AUTO, COMMAND_ADAPTE_SERVO};
+struct command_context gimbal_cmd = {COMMAND_GIMBAL_INFO, MODULE_GIMBAL, 0, DELAY_BEFOR_EXE, COMMAND_TYPE_AUTO};
+struct command_context display_cmd = {COMMAND_LED_DISPLAY, MODULE_LED, 0, DELAY_BEFOR_EXE, COMMAND_TYPE_AUTO};
+struct command_context servo_cmd = {COMMAND_ADAPTE_SERVO, MODULE_ROBOOT, 0, DELAY_BEFOR_EXE, COMMAND_TYPE_AUTO};
 
 static void vTimerCallback(TimerHandle_t xTimer)
 {

@@ -35,6 +35,8 @@
 // 命令处理队列，用于任务间通信
 extern QueueHandle_t command_queue;
 
+extern struct gimbal_info gimbal_info;
+
 enum delay_type
 {
     DELAY_BEFOR_EXE = '0',
@@ -47,17 +49,6 @@ enum command_type
     COMMAND_TYPE_MANUAL  = '0',
     COMMAND_TYPE_AUTO    = '1'
 };
-
-// 放入队列的元素。一个是命令，一个是命令执行后挂起时长。
-struct command_context
-{
-    uint16_t time_sleep_milsec;
-    enum delay_type delay_type;
-    enum command_type command_type;
-    char command;
-};
-
-extern struct gimbal_info gimbal_info;
 
 // define commands id
 enum commands_def
@@ -98,6 +89,16 @@ enum module_def
     MODULE_GIMBAL    = '4',
     MODULE_LED       = '5',
     MODULE_UNKNOWN   = '9'
+};
+
+// 放入队列的元素。一个是命令，一个是命令执行后挂起时长。
+struct command_context
+{
+    char command;
+    enum module_def module;
+    uint16_t time_sleep_milsec;
+    enum delay_type delay_type;
+    enum command_type command_type;
 };
 
 // define command receiver such as audio receiver and video receiver

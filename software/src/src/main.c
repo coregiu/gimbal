@@ -1,7 +1,7 @@
 /**
   ******************************************************************************
   *
-  * The main function of ago.
+  * The main function of rush mog.
   * author: coregiu
   *
   *

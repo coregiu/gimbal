@@ -75,29 +75,28 @@ char* receive_commands()
  * command: the command
  *
  */
-void notify_all(enum module_def module, char command, enum command_type type)
+void notify_all(struct command_context *command_context)
 {
-    struct command_context command_context = {0, DELAY_AFTER_EXE, type, command};
-    switch (module)
+    switch (command_context->module)
     {
     case MODULE_VEHICLE:
-        vehicle_executor.update_state(&command_context);
+        vehicle_executor.update_state(command_context);
         break;
     case MODULE_VEDIO:
-        video_executor.update_state(&command_context);
+        video_executor.update_state(command_context);
         break;
     case MODULE_ROBOOT:
-        arm_roboot_executor.update_state(&command_context);
+        arm_roboot_executor.update_state(command_context);
         break;
     case MODULE_INTELI:
-        command_context.command = 'D';
-        vehicle_executor.update_state(&command_context);
+        command_context->command = 'D';
+        vehicle_executor.update_state(command_context);
         break;
     case MODULE_LED:
-        led_display_executor.update_state(&command_context);
+        led_display_executor.update_state(command_context);
         break;
     case MODULE_GIMBAL:
-        timer_executor.update_state(&command_context);
+        timer_executor.update_state(command_context);
         break;
 
     default:
@@ -117,7 +116,8 @@ void execute_commands(char *commands, enum command_type type)
     if (cmd_seq >= 0 && cmd_seq < COMMANDS_LENGTH)
     {
         LED = ~LED;
-        notify_all(command_module_map[cmd_seq][1], commands[0], type);
+        struct command_context command_context = {commands[0], command_module_map[cmd_seq][1], 0, DELAY_AFTER_EXE, type};
+        notify_all(&command_context);
     }
 }
 
