@@ -45,6 +45,14 @@ void init_modules();
 char* receive_commands();
 
 /**
+ * notify modules to execute the commands.
+ * car_module: the module of car, such as motor, music, led
+ * command: the command
+ *
+ */
+void execute_command(struct command_context *command_context);
+
+/**
  * execute commands;
  *
  */

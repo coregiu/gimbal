@@ -75,7 +75,7 @@ char* receive_commands()
  * command: the command
  *
  */
-void notify_all(struct command_context *command_context)
+void execute_command(struct command_context *command_context)
 {
     switch (command_context->module)
     {
@@ -117,7 +117,7 @@ void execute_commands(char *commands, enum command_type type)
     {
         LED = ~LED;
         struct command_context command_context = {commands[0], command_module_map[cmd_seq][1], 0, DELAY_AFTER_EXE, type};
-        notify_all(&command_context);
+        execute_command(&command_context);
     }
 }
 

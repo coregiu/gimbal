@@ -9,43 +9,72 @@ struct gimbal_info gimbal_info = {0};
 struct gimbal_info pre_gimbal_info = {0};
 int32_t gimbale_data_buffer[6] = {0};
 
-static void vTimerCallback(TimerHandle_t xTimer);
+// static void vTimerCallback(TimerHandle_t xTimer);
 
-static TimerHandle_t xMyTimer = NULL;
+// static TimerHandle_t xMyTimer = NULL;
 
 struct command_context gimbal_cmd = {COMMAND_GIMBAL_INFO, MODULE_GIMBAL, 0, DELAY_BEFOR_EXE, COMMAND_TYPE_AUTO};
 struct command_context display_cmd = {COMMAND_LED_DISPLAY, MODULE_LED, 0, DELAY_BEFOR_EXE, COMMAND_TYPE_AUTO};
 struct command_context servo_cmd = {COMMAND_ADAPTE_SERVO, MODULE_ROBOOT, 0, DELAY_BEFOR_EXE, COMMAND_TYPE_AUTO};
 
-static void vTimerCallback(TimerHandle_t xTimer)
-{
-    LED = ~LED;
-    send_to_queue(&gimbal_cmd);
-    send_to_queue(&display_cmd);
-}
+// static void vTimerCallback(TimerHandle_t xTimer)
+// {
+//     LED = ~LED;
+//     show_gimbal_info(&gimbal_info);
+//     // send_to_queue(&display_cmd);
+// }
 
 void create_timer_executor()
 {
-    const char *pcTimerName = "GimbalTimer";
-    uint32_t ulPeriod = pdMS_TO_TICKS(1000); // Period in ticks, e.g., 1000ms
-    uint8_t ucAutoReload = pdTRUE;           // Auto-reload after expiry
-    BaseType_t xTimerCreated = pdFALSE;
+    // const char *pcTimerName = "GimbalTimer";
+    // uint32_t ulPeriod = pdMS_TO_TICKS(1000); // Period in ticks, e.g., 1000ms
+    // uint8_t ucAutoReload = pdTRUE;           // Auto-reload after expiry
+    // BaseType_t xTimerCreated = pdFALSE;
 
-    xMyTimer = xTimerCreate(
-        pcTimerName,      // A text name for the timer (not used by the kernel)
-        ulPeriod,         // The timer period in ticks
-        ucAutoReload,     // Auto-reload setting
-        (void *)NULL,     // The timer ID, can be NULL
-        vTimerCallback    // The callback function that will be called on timer expiry
-    );
+    // xMyTimer = xTimerCreate(
+    //     pcTimerName,      // A text name for the timer (not used by the kernel)
+    //     ulPeriod,         // The timer period in ticks
+    //     ucAutoReload,     // Auto-reload setting
+    //     (void *)NULL,     // The timer ID, can be NULL
+    //     vTimerCallback    // The callback function that will be called on timer expiry
+    // );
 
-    if(xMyTimer != NULL)
-    {
-        xTimerStart(xMyTimer, 0); // Start the timer
-        xTimerCreated = pdTRUE;
-    }
+    // if(xMyTimer != NULL)
+    // {
+    //     xTimerStart(xMyTimer, 0); // Start the timer
+    //     xTimerCreated = pdTRUE;
+    // }
 
-    configASSERT(xTimerCreated);
+    // configASSERT(xTimerCreated);
+
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+    NVIC_InitTypeDef NVIC_InitStructure;
+
+    // 使能TIM2时钟
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
+
+    // 定时器参数配置
+    // 假设系统时钟为72MHz，TIM2时钟源为APB1（经过2分频后为36MHz）
+    // 设置预分频值为35999，则TIM2的计数频率为36MHz/(35999+1)=1KHz
+    // 设置自动重载值为999，则中断周期为(999+1)*1ms=1s
+    TIM_TimeBaseStructure.TIM_Period = 999;
+    TIM_TimeBaseStructure.TIM_Prescaler = 35999;
+    TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
+
+    // 使能TIM2的更新中断
+    TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
+
+    // 中断优先级配置
+    NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+
+    // 启动TIM2
+    TIM_Cmd(TIM2, ENABLE);
 }
 
 void bind_dma1_to_iic2()
@@ -192,6 +221,7 @@ void update_timer_state(struct command_context *command_context)
     }
     else
     {
+        uart_log_string_data("nothing of mpu type!");
         return;
     }
 
@@ -203,8 +233,7 @@ void update_timer_state(struct command_context *command_context)
     }
     set_gimbal_info(&pre_gimbal_info, &gimbal_info);
 
-    send_to_queue(&servo_cmd);
-    // show_gimbal_info(&gimbal_info);
+    execute_command(&servo_cmd);
 }
 
 void TIM2_IRQHandler(void)
@@ -212,7 +241,9 @@ void TIM2_IRQHandler(void)
     if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET) {
         // 清除更新中断标志位
         TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
-
+        LED = ~LED;
+        execute_command(&gimbal_cmd);
+        execute_command(&display_cmd);
     }
 }
 
