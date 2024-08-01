@@ -58,7 +58,8 @@ void init_modules()
 
     arm_roboot_executor.init();
     led_display_executor.init();
-    timer_executor.init();
+    timer_manager.init();
+    attitude_executor.init();
 }
 
 /**
@@ -97,7 +98,7 @@ void execute_command(struct command_context *command_context)
         led_display_executor.update_state(command_context);
         break;
     case MODULE_GIMBAL:
-        timer_executor.update_state(command_context);
+        attitude_executor.update_state(command_context);
         break;
 
     default:
