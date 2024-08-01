@@ -77,6 +77,7 @@ char* receive_commands()
  */
 void execute_command(struct command_context *command_context)
 {
+    LED = ~LED;
     switch (command_context->module)
     {
     case MODULE_VEHICLE:
@@ -115,7 +116,6 @@ void execute_commands(char *commands, enum command_type type)
     uint cmd_seq = convert_command_seq(commands[0]);
     if (cmd_seq >= 0 && cmd_seq < COMMANDS_LENGTH)
     {
-        LED = ~LED;
         struct command_context command_context = {commands[0], command_module_map[cmd_seq][1], 0, DELAY_AFTER_EXE, type};
         execute_command(&command_context);
     }
