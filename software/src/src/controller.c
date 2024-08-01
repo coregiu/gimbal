@@ -32,7 +32,7 @@ const char command_module_map[COMMANDS_LENGTH][2] = {{COMMAND_STOP, MODULE_VEHIC
                                                       {COMMAND_CLOSE_INTELI, MODULE_VEDIO},
                                                       {COMMAND_PLAYING, MODULE_INTELI},
                                                       {COMMAND_ADAPTE_SERVO, MODULE_ROBOOT},
-                                                      {COMMAND_GIMBAL_INFO, MODULE_GIMBAL},
+                                                      {COMMAND_ATTITUDE_INFO, MODULE_ATTITUDE},
                                                       {COMMAND_LED_DISPLAY, MODULE_LED},
                                                       {COMMAND_UNKNOWN, MODULE_UNKNOWN}};
 
@@ -97,7 +97,7 @@ void execute_command(struct command_context *command_context)
     case MODULE_LED:
         led_display_executor.update_state(command_context);
         break;
-    case MODULE_GIMBAL:
+    case MODULE_ATTITUDE:
         attitude_executor.update_state(command_context);
         break;
 

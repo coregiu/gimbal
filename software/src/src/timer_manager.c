@@ -1,6 +1,6 @@
 #include <timer_manager.h>
 
-struct command_context gimbal_cmd = {COMMAND_GIMBAL_INFO, MODULE_GIMBAL, 0, DELAY_BEFOR_EXE, COMMAND_TYPE_AUTO};
+struct command_context attitude_cmd = {COMMAND_ATTITUDE_INFO, MODULE_ATTITUDE, 0, DELAY_BEFOR_EXE, COMMAND_TYPE_AUTO};
 struct command_context display_cmd = {COMMAND_LED_DISPLAY, MODULE_LED, 0, DELAY_BEFOR_EXE, COMMAND_TYPE_AUTO};
 
 void create_timer_manager()
@@ -53,7 +53,7 @@ void TIM2_IRQHandler(void)
         // 清除更新中断标志位
         TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
         // LED = ~LED;
-        execute_command(&gimbal_cmd);
+        execute_command(&attitude_cmd);
         execute_command(&display_cmd);
     }
 }
