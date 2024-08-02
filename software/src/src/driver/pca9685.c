@@ -7,7 +7,7 @@
   *
   ******************************************************************************
 **/
-#include "stm32_pca9685.h"
+#include "pca9685.h"
 
 void pca_write(u8 adrr, u8 data) //向PCA写数据,adrrd地址,data数据
 {
