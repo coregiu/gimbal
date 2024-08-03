@@ -43,6 +43,11 @@ uint8_t mpu_init(void)
     mpu_write_byte(MPU_ADDR, MPU_FIFO_EN_REG, 0X00);   // 关闭FIFO
     mpu_write_byte(MPU_ADDR, MPU_INTBP_CFG_REG, 0X80); // INT引脚低电平有效
     res = mpu_read_byte(MPU_ADDR, MPU_DEVICE_ID_REG);
+
+    uart_log_string_no_enter("mpu type:");
+    uart_log_number(res);
+    uart_log_enter_char();
+
     switch (res)
     {
     case MPU_6050_WHO_AMI_I:
@@ -208,8 +213,27 @@ uint8_t mpu_get_gyroscope(short *gx, short *gy, short *gz)
 //     其他,错误代码
 uint8_t mpu_get_magnetometer(short *mx, short *my, short *mz)
 {
-    u8 buf[6], res;
-    res = mpu_read_len(AK8963_ADDR, MAG_XOUT_L, 6, buf);
+    u8 buf[6] = {0}, res = 0;
+    res  = mpu_read_len(AK8963_ADDR, MAG_XOUT_L, 1, &buf[0]);
+    res |= mpu_read_len(AK8963_ADDR, MAG_XOUT_H, 1, &buf[1]);
+    res |= mpu_read_len(AK8963_ADDR, MAG_YOUT_L, 1, &buf[2]);
+    res |= mpu_read_len(AK8963_ADDR, MAG_YOUT_H, 1, &buf[3]);
+    res |= mpu_read_len(AK8963_ADDR, MAG_ZOUT_L, 1, &buf[4]);
+    res |= mpu_read_len(AK8963_ADDR, MAG_ZOUT_H, 1, &buf[5]);
+    // uart_log_number(res);
+    // uart_log_data('-');
+    // uart_log_number(buf[0]);
+    // uart_log_data('|');
+    // uart_log_number(buf[1]);
+    // uart_log_data('|');
+    // uart_log_number(buf[2]);
+    // uart_log_data('|');
+    // uart_log_number(buf[3]);
+    // uart_log_data('|');
+    // uart_log_number(buf[4]);
+    // uart_log_data('|');
+    // uart_log_number(buf[5]);
+    // uart_log_data('|');
     if (res == 0)
     {
         *mx = ((u16)buf[1] << 8) | buf[0];
