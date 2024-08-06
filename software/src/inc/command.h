@@ -18,6 +18,7 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "task.h"
+#include "semphr.h"
 #include "timers.h"
 #include "mpu6050.h"
 #include "tof.h"
