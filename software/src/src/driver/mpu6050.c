@@ -81,20 +81,23 @@ uint8_t mpu_init(void)
 
     if (mpu_type == MPU_9250)
     {
-        res = mpu_read_byte(AK8963_ADDR, MAG_WIA); // 读取AK8963 ID
-        if (res == AK8963_ID)
-        {
-            mpu_write_byte(AK8963_ADDR, MAG_CNTL2, 0X01); // 复位AK8963
-            delay_ms(50);
-            mpu_write_byte(AK8963_ADDR, MAG_CNTL1, 0X11); // 设置AK8963为单次测量
-        }
-        else
-        {
-            uart_log_string_no_enter("failed to init ak8963 res: ");
-            uart_log_number(res);
-            uart_log_enter_char();
-            return 1;
-        }
+        mpu_write_byte(AK8963_ADDR, MAG_CNTL2, 0X01); // 复位AK8963
+        delay_ms(50);
+        mpu_write_byte(AK8963_ADDR, MAG_CNTL1, 0X11); // 设置AK8963为单次测量
+        // res = mpu_read_byte(AK8963_ADDR, MAG_WIA); // 读取AK8963 ID
+        // if (res == AK8963_ID)
+        // {
+        //     mpu_write_byte(AK8963_ADDR, MAG_CNTL2, 0X01); // 复位AK8963
+        //     delay_ms(50);
+        //     mpu_write_byte(AK8963_ADDR, MAG_CNTL1, 0X11); // 设置AK8963为单次测量
+        // }
+        // else
+        // {
+        //     uart_log_string_no_enter("failed to init ak8963 res: ");
+        //     uart_log_number(res);
+        //     uart_log_enter_char();
+        //     return 1;
+        // }
     }
 
     calibrate();
@@ -213,6 +216,11 @@ uint8_t mpu_get_gyroscope(short *gx, short *gy, short *gz)
 //     其他,错误代码
 uint8_t mpu_get_magnetometer(short *mx, short *my, short *mz)
 {
+    mpu_write_byte(MPU_ADDR, MPU_INTBP_CFG_REG, 0x02); //set i2c bypass enable pin to true to access magnetometer
+    delay_ms(10);
+    mpu_write_byte(AK8963_ADDR, MAG_CNTL1, 0x01); //enable the magnetometer
+	delay_ms(10);
+
     u8 buf[6] = {0}, res = 0;
     res  = mpu_read_len(AK8963_ADDR, MAG_XOUT_L, 1, &buf[0]);
     res |= mpu_read_len(AK8963_ADDR, MAG_XOUT_H, 1, &buf[1]);
@@ -220,20 +228,20 @@ uint8_t mpu_get_magnetometer(short *mx, short *my, short *mz)
     res |= mpu_read_len(AK8963_ADDR, MAG_YOUT_H, 1, &buf[3]);
     res |= mpu_read_len(AK8963_ADDR, MAG_ZOUT_L, 1, &buf[4]);
     res |= mpu_read_len(AK8963_ADDR, MAG_ZOUT_H, 1, &buf[5]);
-    // uart_log_number(res);
-    // uart_log_data('-');
-    // uart_log_number(buf[0]);
-    // uart_log_data('|');
-    // uart_log_number(buf[1]);
-    // uart_log_data('|');
-    // uart_log_number(buf[2]);
-    // uart_log_data('|');
-    // uart_log_number(buf[3]);
-    // uart_log_data('|');
-    // uart_log_number(buf[4]);
-    // uart_log_data('|');
-    // uart_log_number(buf[5]);
-    // uart_log_data('|');
+    uart_log_number(res);
+    uart_log_data('-');
+    uart_log_number(buf[0]);
+    uart_log_data('|');
+    uart_log_number(buf[1]);
+    uart_log_data('|');
+    uart_log_number(buf[2]);
+    uart_log_data('|');
+    uart_log_number(buf[3]);
+    uart_log_data('|');
+    uart_log_number(buf[4]);
+    uart_log_data('|');
+    uart_log_number(buf[5]);
+    uart_log_data('|');
     if (res == 0)
     {
         *mx = ((u16)buf[1] << 8) | buf[0];
